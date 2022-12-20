@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"log"
 	"os"
 	"os/signal"
@@ -9,10 +8,12 @@ import (
 
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/listeners"
-	"github.com/mochi-co/mqtt/v2/packets"
+	"github.com/upperz-llc/go-broker/internal/hooks"
 )
 
 func main() {
+	// ctx := context.Background()
+
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -21,14 +22,64 @@ func main() {
 		done <- true
 	}()
 
+	// certFile, err := ioutil.ReadFile("etc/letsencrypt/live/testbroker.dev.upperz.org/cert.pem")
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+
+	// privateKey, err := ioutil.ReadFile("etc/letsencrypt/live/testbroker.dev.upperz.org/privkey.pem")
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+
+	// // TLS/SSL
+	// cert, err := tls.X509KeyPair(certFile, privateKey)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	// // Basic TLS Config
+	// tlsConfig := &tls.Config{
+	// 	Certificates: []tls.Certificate{cert},
+	// }
+
+	// // CONFIGS
+	// client, err := pubsub.NewClient(ctx, "freezer-monitor-dev-e7d4c")
+	// if err != nil {
+	// 	panic(fmt.Errorf("pubsub.NewClient: %v", err))
+	// }
+	// defer client.Close()
+
+	// topic := client.Topic("test")
+	// topic.PublishSettings = pubsub.PublishSettings{
+	// 	DelayThreshold: 1 * time.Second,
+	// 	CountThreshold: 10,
+	// }
+	// topic.PublishSettings = pubsub.PublishSettings{}
+
+	// bps := ps.BrokerPubSub{
+	// 	Topic: topic,
+	// }
+
+	// *************************************
+
 	// Create the new MQTT Server.
 	server := mqtt.New(nil)
 
 	// Allow all connections.
 	// _ = server.AddHook(new(auth.AllowHook), nil)
-	_ = server.AddHook(new(ExampleHook), nil)
+	_ = server.AddHook(new(hooks.FirestoreAuthHook), nil)
+
+	// examplehook := new(hooks.ExampleHook)
+	// examplehook.Pubsub = bps
+	// _ = server.AddHook(examplehook, nil)
 
 	// Create a TCP listener on a standard port.
+	// tcp := listeners.NewTCP("t1", ":1883", &listeners.Config{
+	// 	TLSConfig: tlsConfig,
+	// })
 	tcp := listeners.NewTCP("t1", ":1883", nil)
 	err := server.AddListener(tcp)
 	if err != nil {
@@ -45,60 +96,4 @@ func main() {
 	server.Close()
 	server.Log.Info().Msg("main.go finished")
 
-}
-
-type ExampleHook struct {
-	mqtt.HookBase
-}
-
-func (h *ExampleHook) ID() string {
-	return "events-example"
-}
-
-func (h *ExampleHook) Provides(b byte) bool {
-	return bytes.Contains([]byte{
-		mqtt.OnConnect,
-		mqtt.OnDisconnect,
-		mqtt.OnSubscribed,
-		mqtt.OnUnsubscribed,
-		mqtt.OnPublished,
-		mqtt.OnPublish,
-	}, []byte{b})
-}
-
-func (h *ExampleHook) Init(config any) error {
-	h.Log.Info().Msg("initialised")
-	return nil
-}
-
-func (h *ExampleHook) OnConnect(cl *mqtt.Client, pk packets.Packet) {
-	h.Log.Info().Str("client", cl.ID).Msgf("client connected")
-}
-
-func (h *ExampleHook) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
-	h.Log.Info().Str("client", cl.ID).Bool("expire", expire).Err(err).Msg("client disconnected")
-}
-
-func (h *ExampleHook) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes []byte) {
-	h.Log.Info().Str("client", cl.ID).Interface("filters", pk.Filters).Msgf("subscribed qos=%v", reasonCodes)
-}
-
-func (h *ExampleHook) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
-	h.Log.Info().Str("client", cl.ID).Interface("filters", pk.Filters).Msg("unsubscribed")
-}
-
-func (h *ExampleHook) OnPublish(cl *mqtt.Client, pk packets.Packet) (packets.Packet, error) {
-	h.Log.Info().Str("client", cl.ID).Str("payload", string(pk.Payload)).Msg("received from client")
-
-	pkx := pk
-	if string(pk.Payload) == "hello" {
-		pkx.Payload = []byte("hello world")
-		h.Log.Info().Str("client", cl.ID).Str("payload", string(pkx.Payload)).Msg("received modified packet from client")
-	}
-
-	return pkx, nil
-}
-
-func (h *ExampleHook) OnPublished(cl *mqtt.Client, pk packets.Packet) {
-	h.Log.Info().Str("client", cl.ID).Str("payload", string(pk.Payload)).Msg("published to client")
 }
