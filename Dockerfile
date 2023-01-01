@@ -44,5 +44,3 @@ EXPOSE 1882
 EXPOSE 8080
 
 CMD ["/bin/bash","-c","/run.sh"]
-
-# ENTRYPOINT [ "/mochi" ]
