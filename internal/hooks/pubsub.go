@@ -3,6 +3,7 @@ package hooks
 import (
 	"bytes"
 	"fmt"
+	"log"
 
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/packets"
@@ -11,6 +12,7 @@ import (
 )
 
 type ExampleHook struct {
+	Logger *log.Logger
 	Pubsub ps.BrokerPubSub
 	mqtt.HookBase
 }
@@ -51,7 +53,7 @@ func (h *ExampleHook) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
 }
 
 func (h *ExampleHook) OnPublished(cl *mqtt.Client, pk packets.Packet) {
-	h.Log.Info().Str("client", cl.ID).Str("payload", string(pk.Payload)).Msg("published to client")
+	h.Logger.Printf("Client %s published payload %s to client", cl.ID, string(pk.Payload))
 	err := h.Pubsub.Publish("test", domain.MQTTEvent{
 		Topic:   pk.TopicName,
 		Payload: pk.Payload,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"sync"
 	"sync/atomic"
 
@@ -13,7 +14,8 @@ import (
 
 // BrokerPubSub palceholder
 type BrokerPubSub struct {
-	Topic *pubsub.Topic
+	Logger log.Logger
+	Topic  *pubsub.Topic
 }
 
 func (bps *BrokerPubSub) Publish(topic string, me domain.MQTTEvent) error {
@@ -39,7 +41,7 @@ func (bps *BrokerPubSub) Publish(topic string, me domain.MQTTEvent) error {
 			atomic.AddUint64(&totalErrors, 1)
 			return
 		}
-		fmt.Printf("Published message; msg ID: %v\n", id)
+		bps.Logger.Printf("Published message; msg ID: %v\n", id)
 	}(result)
 
 	wg.Wait()

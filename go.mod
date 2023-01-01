@@ -3,6 +3,8 @@ module github.com/upperz-llc/go-broker
 go 1.19
 
 require (
+	cloud.google.com/go/firestore v1.9.0
+	cloud.google.com/go/logging v1.6.1
 	cloud.google.com/go/pubsub v1.28.0
 	firebase.google.com/go/v4 v4.10.0
 	github.com/mochi-co/mqtt/v2 v2.0.7
@@ -12,7 +14,6 @@ require (
 	cloud.google.com/go v0.105.0 // indirect
 	cloud.google.com/go/compute v1.13.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.1 // indirect
-	cloud.google.com/go/firestore v1.9.0 // indirect
 	cloud.google.com/go/iam v0.7.0 // indirect
 	cloud.google.com/go/longrunning v0.3.0 // indirect
 	cloud.google.com/go/storage v1.27.0 // indirect
