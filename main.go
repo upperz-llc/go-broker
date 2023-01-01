@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
@@ -46,13 +45,13 @@ func main() {
 	logger := client.Logger(logName).StandardLogger(logging.Info)
 
 	// ****************** CONFIGURE SSL ****************
-	certFile, err := ioutil.ReadFile("etc/letsencrypt/live/testbroker.dev.upperz.org/cert.pem")
+	certFile, err := os.ReadFile("etc/letsencrypt/live/testbroker.dev.upperz.org/cert.pem")
 	if err != nil {
 		logger.Println(err)
 		return
 	}
 
-	privateKey, err := ioutil.ReadFile("etc/letsencrypt/live/testbroker.dev.upperz.org/privkey.pem")
+	privateKey, err := os.ReadFile("etc/letsencrypt/live/testbroker.dev.upperz.org/privkey.pem")
 	if err != nil {
 		logger.Println(err)
 		return
