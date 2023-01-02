@@ -88,7 +88,7 @@ func main() {
 	tcp := listeners.NewTCP("t1", ":1883", &listeners.Config{
 		TLSConfig: tlsConfig,
 	})
-	// tcp := listeners.NewTCP("t1", ":1883", nil)
+
 	err = server.AddListener(tcp)
 	if err != nil {
 		log.Fatal(err)
