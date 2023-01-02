@@ -8,6 +8,8 @@ require (
 	cloud.google.com/go/pubsub v1.28.0
 	firebase.google.com/go/v4 v4.10.0
 	github.com/mochi-co/mqtt/v2 v2.0.7
+	github.com/patrickmn/go-cache v2.1.0+incompatible
+	google.golang.org/grpc v1.50.1
 )
 
 require (
@@ -43,7 +45,5 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/appengine/v2 v2.0.2 // indirect
 	google.golang.org/genproto v0.0.0-20221202195650-67e5cbc046fd // indirect
-	google.golang.org/grpc v1.50.1 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

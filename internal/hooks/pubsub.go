@@ -2,26 +2,31 @@ package hooks
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
+	"os"
+	"time"
 
+	"cloud.google.com/go/logging"
+	"cloud.google.com/go/pubsub"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/packets"
 	"github.com/upperz-llc/go-broker/internal/domain"
 	"github.com/upperz-llc/go-broker/internal/ps"
 )
 
-type ExampleHook struct {
+type GCPPubsubHook struct {
 	Logger *log.Logger
 	Pubsub ps.BrokerPubSub
 	mqtt.HookBase
 }
 
-func (h *ExampleHook) ID() string {
-	return "events-example"
+func (h *GCPPubsubHook) ID() string {
+	return "gcp-pubsub-hook"
 }
 
-func (h *ExampleHook) Provides(b byte) bool {
+func (h *GCPPubsubHook) Provides(b byte) bool {
 	return bytes.Contains([]byte{
 		mqtt.OnConnect,
 		mqtt.OnDisconnect,
@@ -31,28 +36,28 @@ func (h *ExampleHook) Provides(b byte) bool {
 	}, []byte{b})
 }
 
-func (h *ExampleHook) Init(config any) error {
-	h.Log.Info().Msg("initialised")
+func (h *GCPPubsubHook) Init(config any) error {
+	h.Logger.Println("initialised")
 	return nil
 }
 
-func (h *ExampleHook) OnConnect(cl *mqtt.Client, pk packets.Packet) {
+func (h *GCPPubsubHook) OnConnect(cl *mqtt.Client, pk packets.Packet) {
 	h.Log.Info().Str("client", cl.ID).Msgf("client connected")
 }
 
-func (h *ExampleHook) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
+func (h *GCPPubsubHook) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
 	h.Log.Info().Str("client", cl.ID).Bool("expire", expire).Err(err).Msg("client disconnected")
 }
 
-func (h *ExampleHook) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes []byte) {
+func (h *GCPPubsubHook) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes []byte) {
 	h.Log.Info().Str("client", cl.ID).Interface("filters", pk.Filters).Msgf("subscribed qos=%v", reasonCodes)
 }
 
-func (h *ExampleHook) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
+func (h *GCPPubsubHook) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
 	h.Log.Info().Str("client", cl.ID).Interface("filters", pk.Filters).Msg("unsubscribed")
 }
 
-func (h *ExampleHook) OnPublished(cl *mqtt.Client, pk packets.Packet) {
+func (h *GCPPubsubHook) OnPublished(cl *mqtt.Client, pk packets.Packet) {
 	h.Logger.Printf("Client %s published payload %s to client", cl.ID, string(pk.Payload))
 	err := h.Pubsub.Publish("test", domain.MQTTEvent{
 		Topic:   pk.TopicName,
@@ -62,4 +67,49 @@ func (h *ExampleHook) OnPublished(cl *mqtt.Client, pk packets.Packet) {
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func Initialize(ctx context.Context) (*GCPPubsubHook, error) {
+	// Pull Env Variables
+	pid, found := os.LookupEnv("GCP_PROJECT_ID")
+	if !found {
+		panic("GCP_PROJECT_ID not found ... panicing")
+	}
+	bt, found := os.LookupEnv("BROKER_HOOK_GCPPUBSUB_TOPIC")
+	if !found {
+		panic("BROKER_HOOK_GCPPUBSUB_TOPIC not found ... panicing")
+	}
+
+	// Create and configure logger
+	lc, err := logging.NewClient(ctx, pid)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+	// defer lc.Close()
+
+	logger := lc.Logger("go-broker-log").StandardLogger(logging.Info)
+
+	// Create and configure pubsub client
+	pc, err := pubsub.NewClient(ctx, pid)
+	if err != nil {
+		panic(fmt.Errorf("pubsub.NewClient: %v", err))
+	}
+
+	topic := pc.Topic(bt)
+	topic.PublishSettings = pubsub.PublishSettings{
+		DelayThreshold: 1 * time.Second,
+		CountThreshold: 10,
+	}
+
+	// Create internal broker logic
+	bps := ps.BrokerPubSub{
+		Logger: *logger,
+		Topic:  topic,
+	}
+
+	gph := new(GCPPubsubHook)
+	gph.Pubsub = bps
+	gph.Logger = logger
+
+	return gph, nil
 }

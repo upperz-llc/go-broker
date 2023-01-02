@@ -3,23 +3,26 @@ package hooks
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"log"
+	"time"
 
-	"cloud.google.com/go/firestore"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/packets"
+	"github.com/patrickmn/go-cache"
+	"github.com/upperz-llc/go-broker/internal/firestore"
 
 	firebase "firebase.google.com/go/v4"
 )
 
 type FirestoreAuthHook struct {
+	ACLCache *cache.Cache
+	DB       *firestore.DB
+	Logger   *log.Logger
 	mqtt.HookBase
-	DB *firestore.Client
 }
 
 func (h *FirestoreAuthHook) ID() string {
-	return "firebase-auth"
+	return "firebase-auth-hook"
 }
 
 func (h *FirestoreAuthHook) Provides(b byte) bool {
@@ -39,20 +42,51 @@ func (h *FirestoreAuthHook) Init(config any) error {
 	if err != nil {
 		log.Fatalf("error initializing app: %v\n", err)
 	}
-	h.DB = fdb
 
-	h.Log.Info().Msg("initialised")
+	db, err := firestore.NewClient(context.Background())
+	if err != nil {
+		log.Fatalf("error initializing app: %v\n", err)
+	}
+	db.DB = fdb
+	h.DB = db
+
+	h.ACLCache = cache.New(5*time.Minute, 10*time.Minute)
+
+	h.Logger.Println("initialized firestoreauthhook")
 	return nil
 }
 
 func (h *FirestoreAuthHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
-	fmt.Println("OnConnectAuthenticate")
+	h.Logger.Println("OnConnectAuthenticate")
 
-	return true
+	if found, err := h.DB.GetClientAuthentication(context.Background(), cl.ID); err != nil {
+		return false
+	} else {
+		h.Logger.Printf("Connect Authenticate check result : %t\n", found)
+		return found
+	}
+
 }
 
 func (h *FirestoreAuthHook) OnACLCheck(cl *mqtt.Client, topic string, write bool) bool {
-	fmt.Println("OnACLCheck")
+	h.Logger.Println("OnACLCheck")
 
-	return true
+	allowed, found := h.ACLCache.Get(cl.ID + "-" + topic)
+	if !found {
+		h.Logger.Printf("Cache miss for ACL Check : %s for topic : %s\n", cl.ID, topic)
+		if found, err := h.DB.GetClientAuthenticationACL(context.Background(), cl.ID, topic); err != nil {
+			return false
+		} else {
+			h.Logger.Printf("ACL check result : %t\n", found)
+			h.Logger.Printf("Adding ACL to cache for device id : %s for topic : %s\n", cl.ID, topic)
+			if err := h.ACLCache.Add(cl.ID+"-"+topic, found, cache.DefaultExpiration); err != nil {
+				h.Logger.Println(err)
+			}
+
+			return found
+		}
+	}
+
+	h.Logger.Printf("Cache hit for ACL Check : %s for topic : %s\n", cl.ID, topic)
+	return allowed.(bool)
 }
