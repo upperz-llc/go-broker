@@ -66,13 +66,16 @@ func main() {
 	// *************************************************
 
 	// CONFIGS
-	gcphook, err := hooks.Initialize(ctx)
-	if err != nil {
-		panic(err)
-	}
+	// gcphook, err := hooks.Initialize(ctx)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	fsh := new(hooks.FirestoreAuthHook)
 	fsh.Logger = logger
+
+	gcph := new(hooks.GCPPubsubHook)
+	gcph.Logger = logger
 
 	// *************************************
 
@@ -82,22 +85,31 @@ func main() {
 	// Allow all connections.
 	// _ = server.AddHook(new(auth.AllowHook), nil)
 	_ = server.AddHook(fsh, nil)
-	_ = server.AddHook(gcphook, nil)
+	_ = server.AddHook(gcph, nil)
 
 	// Create a TCP listener on a standard port.
 	tcp := listeners.NewTCP("t1", ":1883", &listeners.Config{
 		TLSConfig: tlsConfig,
 	})
 
+	// Create HTTP Stats Listener
+	stats := listeners.NewHTTPStats("stats", ":8080", nil, server.Info)
+	err = server.AddListener(stats)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	err = server.AddListener(tcp)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = server.Serve()
-	if err != nil {
-		log.Fatal(err)
-	}
+	go func() {
+		err := server.Serve()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	<-done
 	server.Log.Warn().Msg("caught signal, stopping...")

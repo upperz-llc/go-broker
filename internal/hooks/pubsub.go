@@ -37,7 +37,48 @@ func (h *GCPPubsubHook) Provides(b byte) bool {
 }
 
 func (h *GCPPubsubHook) Init(config any) error {
-	h.Logger.Println("initialised")
+	ctx := context.Background()
+
+	// Pull Env Variables
+	pid, found := os.LookupEnv("GCP_PROJECT_ID")
+	if !found {
+		panic("GCP_PROJECT_ID not found ... panicing")
+	}
+	bt, found := os.LookupEnv("BROKER_HOOK_GCPPUBSUB_TOPIC")
+	if !found {
+		panic("BROKER_HOOK_GCPPUBSUB_TOPIC not found ... panicing")
+	}
+
+	// Create and configure logger
+	lc, err := logging.NewClient(ctx, pid)
+	if err != nil {
+		panic("Failed to create client")
+	}
+
+	logger := lc.Logger("go-broker-log").StandardLogger(logging.Info)
+
+	// Create and configure pubsub client
+	pc, err := pubsub.NewClient(ctx, pid)
+	if err != nil {
+		panic(fmt.Errorf("pubsub.NewClient: %v", err))
+	}
+
+	topic := pc.Topic(bt)
+	topic.PublishSettings = pubsub.PublishSettings{
+		DelayThreshold: 1 * time.Second,
+		CountThreshold: 10,
+	}
+
+	// Create internal broker logic
+	bps := ps.BrokerPubSub{
+		Logger: *logger,
+		Topic:  topic,
+	}
+
+	h.Pubsub = bps
+	h.Logger = logger
+
+	h.Logger.Println("initialised gcp pubsub hook")
 	return nil
 }
 
@@ -69,47 +110,6 @@ func (h *GCPPubsubHook) OnPublished(cl *mqtt.Client, pk packets.Packet) {
 	}
 }
 
-func Initialize(ctx context.Context) (*GCPPubsubHook, error) {
-	// Pull Env Variables
-	pid, found := os.LookupEnv("GCP_PROJECT_ID")
-	if !found {
-		panic("GCP_PROJECT_ID not found ... panicing")
-	}
-	bt, found := os.LookupEnv("BROKER_HOOK_GCPPUBSUB_TOPIC")
-	if !found {
-		panic("BROKER_HOOK_GCPPUBSUB_TOPIC not found ... panicing")
-	}
+// func Initialize(ctx context.Context) (*GCPPubsubHook, error) {
 
-	// Create and configure logger
-	lc, err := logging.NewClient(ctx, pid)
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
-	}
-	// defer lc.Close()
-
-	logger := lc.Logger("go-broker-log").StandardLogger(logging.Info)
-
-	// Create and configure pubsub client
-	pc, err := pubsub.NewClient(ctx, pid)
-	if err != nil {
-		panic(fmt.Errorf("pubsub.NewClient: %v", err))
-	}
-
-	topic := pc.Topic(bt)
-	topic.PublishSettings = pubsub.PublishSettings{
-		DelayThreshold: 1 * time.Second,
-		CountThreshold: 10,
-	}
-
-	// Create internal broker logic
-	bps := ps.BrokerPubSub{
-		Logger: *logger,
-		Topic:  topic,
-	}
-
-	gph := new(GCPPubsubHook)
-	gph.Pubsub = bps
-	gph.Logger = logger
-
-	return gph, nil
-}
+// }

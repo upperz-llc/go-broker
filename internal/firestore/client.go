@@ -3,57 +3,18 @@ package firestore
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log"
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// Firestore placeholder
+// DB placeholder
 type DB struct {
-	DB *firestore.Client
+	DB     *firestore.Client
+	Logger *log.Logger
 }
-
-// DeleteDevice placeholder
-// func (db *DB) DeleteDevice(ctx context.Context, deviceID string) error {
-// 	iter := db.DB.CollectionGroup("devices").Where("device_id", "==", deviceID).Documents(ctx)
-// 	devices, err := iter.GetAll()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if len(devices) == 0 || len(devices) > 1 {
-// 		return errors.New("test")
-// 	}
-
-// 	coliter := devices[0].Ref.Collections(ctx)
-
-// 	for {
-// 		doc, err := coliter.Next()
-// 		if err == iterator.Done {
-// 			break
-// 		}
-
-// 		fmt.Println(doc.Path)
-
-// 		iter := doc.Documents(ctx)
-// 		for {
-// 			doc, err := iter.Next()
-// 			if err == iterator.Done {
-// 				break
-// 			}
-// 			if _, err := doc.Ref.Delete(ctx); err != nil {
-// 				fmt.Println(err)
-// 			}
-// 		}
-// 	}
-
-// 	if _, err := devices[0].Ref.Delete(ctx); err != nil {
-// 		return errors.New(fmt.Sprintf("Error : %s", err.Error()))
-// 	}
-
-// 	return nil
-// }
 
 // DeleteDevice placeholder
 func (db *DB) GetClientAuthentication(ctx context.Context, cid string) (bool, error) {
@@ -64,10 +25,19 @@ func (db *DB) GetClientAuthentication(ctx context.Context, cid string) (bool, er
 		}
 	}
 
-	return wr.Exists(), nil
+	if !wr.Exists() {
+		return false, nil
+	}
+
+	enabled, err := wr.DataAt("enabled")
+	if err != nil {
+		return false, err
+	}
+
+	return enabled.(bool), nil
 }
 
-// DeleteDevice placeholder
+// GetClientAuthenticationACL placeholder
 func (db *DB) GetClientAuthenticationACL(ctx context.Context, cid, topic string) (bool, error) {
 	wr, err := db.DB.Collection("broker-auth").Doc(cid).Collection("acls").Doc(topic).Get(ctx)
 	if err != nil {
@@ -82,7 +52,7 @@ func (db *DB) GetClientAuthenticationACL(ctx context.Context, cid, topic string)
 
 	allowed, err := wr.DataAt("allowed")
 	if err != nil {
-		fmt.Println(err)
+		db.Logger.Println(err)
 		return false, err
 	}
 	return allowed.(bool), nil
