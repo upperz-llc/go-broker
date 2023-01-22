@@ -62,10 +62,15 @@ func (h *FirestoreAuthHook) Init(config any) error {
 func (h *FirestoreAuthHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
 	h.Logger.Printf("OnConnectAuthenticate called for device : %s\n", cl.ID)
 
+	// ADMIN CHECK
+	if string(pk.Connect.Username) == "admin" && string(pk.Connect.Password) == "admin" {
+		return true
+	}
+
 	allowed, found := h.OnConnectAuthenticateCache.Get(cl.ID)
 	if !found {
 		h.Logger.Printf("Cache miss for OnConnectAuthenticate for deviceID : %s\n", cl.ID)
-		if allowed, err := h.DB.GetClientAuthentication(context.Background(), cl.ID); err != nil {
+		if allowed, err := h.DB.GetClientAuthentication(context.Background(), cl.ID, string(cl.Properties.Username)); err != nil {
 			h.Logger.Println(err)
 			return false
 		} else {
@@ -86,8 +91,11 @@ func (h *FirestoreAuthHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Pa
 func (h *FirestoreAuthHook) OnACLCheck(cl *mqtt.Client, topic string, write bool) bool {
 	h.Logger.Printf("OnACLCheck called for device : %s on topic : %s\n", cl.ID, topic)
 
+	// ADMIN CHECK
+	if string(cl.Properties.Username) == "admin" {
+		return true
+	}
 	formatted_topic := strings.ReplaceAll(topic, "/", "")
-
 	allowed, found := h.ACLCache.Get(cl.ID + "-" + formatted_topic)
 	if !found {
 		h.Logger.Printf("Cache miss for ACL Check : %s for topic : %s\n", cl.ID, topic)
@@ -107,3 +115,5 @@ func (h *FirestoreAuthHook) OnACLCheck(cl *mqtt.Client, topic string, write bool
 	h.Logger.Printf("Cache hit for ACL Check : %s for topic : %s\n", cl.ID, topic)
 	return allowed.(bool)
 }
+
+// func (h *FirestoreAuthHook) checkAdmin(cl *mqtt.Client, topic string, write bool) bool {

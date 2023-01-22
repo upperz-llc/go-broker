@@ -30,8 +30,6 @@ func (h *GCPPubsubHook) Provides(b byte) bool {
 	return bytes.Contains([]byte{
 		mqtt.OnConnect,
 		mqtt.OnDisconnect,
-		mqtt.OnSubscribed,
-		mqtt.OnUnsubscribed,
 		mqtt.OnPublished,
 	}, []byte{b})
 }
@@ -83,24 +81,16 @@ func (h *GCPPubsubHook) Init(config any) error {
 }
 
 func (h *GCPPubsubHook) OnConnect(cl *mqtt.Client, pk packets.Packet) {
-	h.Log.Info().Str("client", cl.ID).Msgf("client connected")
+	h.Logger.Println("client connected")
 }
 
 func (h *GCPPubsubHook) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
-	h.Log.Info().Str("client", cl.ID).Bool("expire", expire).Err(err).Msg("client disconnected")
-}
-
-func (h *GCPPubsubHook) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes []byte) {
-	h.Log.Info().Str("client", cl.ID).Interface("filters", pk.Filters).Msgf("subscribed qos=%v", reasonCodes)
-}
-
-func (h *GCPPubsubHook) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
-	h.Log.Info().Str("client", cl.ID).Interface("filters", pk.Filters).Msg("unsubscribed")
+	h.Logger.Println("client disconnected")
 }
 
 func (h *GCPPubsubHook) OnPublished(cl *mqtt.Client, pk packets.Packet) {
 	h.Logger.Printf("Client %s published payload %s to client", cl.ID, string(pk.Payload))
-	err := h.Pubsub.Publish("test", domain.MQTTEvent{
+	err := h.Pubsub.Publish(domain.MQTTEvent{
 		Topic:   pk.TopicName,
 		Payload: pk.Payload,
 	})
@@ -109,7 +99,3 @@ func (h *GCPPubsubHook) OnPublished(cl *mqtt.Client, pk packets.Packet) {
 		fmt.Println(err)
 	}
 }
-
-// func Initialize(ctx context.Context) (*GCPPubsubHook, error) {
-
-// }

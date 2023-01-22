@@ -17,7 +17,7 @@ type DB struct {
 }
 
 // DeleteDevice placeholder
-func (db *DB) GetClientAuthentication(ctx context.Context, cid string) (bool, error) {
+func (db *DB) GetClientAuthentication(ctx context.Context, cid, username string) (bool, error) {
 	wr, err := db.DB.Collection("broker-auth").Doc(cid).Get(ctx)
 	if err != nil {
 		if status.Code(err) != codes.NotFound {
@@ -34,7 +34,14 @@ func (db *DB) GetClientAuthentication(ctx context.Context, cid string) (bool, er
 		return false, err
 	}
 
-	return enabled.(bool), nil
+	saved_username, err := wr.DataAt("username")
+	if err != nil {
+		return false, err
+	}
+
+	suf := saved_username.(string) == username
+
+	return enabled.(bool) && suf, nil
 }
 
 // GetClientAuthenticationACL placeholder
