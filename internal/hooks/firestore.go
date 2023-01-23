@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/logging"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/packets"
 	"github.com/patrickmn/go-cache"
@@ -19,7 +20,7 @@ type FirestoreAuthHook struct {
 	ACLCache                   *cache.Cache
 	OnConnectAuthenticateCache *cache.Cache
 	DB                         *firestore.DB
-	Logger                     *log.Logger
+	Logger                     *logging.Logger
 	mqtt.HookBase
 }
 
@@ -55,12 +56,12 @@ func (h *FirestoreAuthHook) Init(config any) error {
 	h.ACLCache = cache.New(5*time.Minute, 10*time.Minute)
 	h.OnConnectAuthenticateCache = cache.New(5*time.Minute, 10*time.Minute)
 
-	h.Logger.Println("initialized firestoreauthhook")
+	h.Logger.StandardLogger(logging.Info).Println("initialized firestoreauthhook")
 	return nil
 }
 
 func (h *FirestoreAuthHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
-	h.Logger.Printf("OnConnectAuthenticate called for device : %s\n", cl.ID)
+	h.Logger.StandardLogger(logging.Info).Printf("OnConnectAuthenticate called for device : %s\n", cl.ID)
 
 	// ADMIN CHECK
 	if string(pk.Connect.Username) == "admin" && string(pk.Connect.Password) == "admin" {
@@ -69,27 +70,27 @@ func (h *FirestoreAuthHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Pa
 
 	allowed, found := h.OnConnectAuthenticateCache.Get(cl.ID)
 	if !found {
-		h.Logger.Printf("Cache miss for OnConnectAuthenticate for deviceID : %s\n", cl.ID)
+		h.Logger.StandardLogger(logging.Info).Printf("Cache miss for OnConnectAuthenticate for deviceID : %s\n", cl.ID)
 		if allowed, err := h.DB.GetClientAuthentication(context.Background(), cl.ID, string(cl.Properties.Username)); err != nil {
-			h.Logger.Println(err)
+			h.Logger.StandardLogger(logging.Error).Println(err)
 			return false
 		} else {
-			h.Logger.Printf("Connect Authenticate check result : %t\n", allowed)
+			h.Logger.StandardLogger(logging.Error).Printf("Connect Authenticate check result : %t\n", allowed)
 			if err := h.OnConnectAuthenticateCache.Add(cl.ID, allowed, cache.DefaultExpiration); err != nil {
-				h.Logger.Printf("Failed to save OnConnectAuthenticate result to cache for device : %s\n", cl.ID)
-				h.Logger.Println(err)
+				h.Logger.StandardLogger(logging.Info).Printf("Failed to save OnConnectAuthenticate result to cache for device : %s\n", cl.ID)
+				h.Logger.StandardLogger(logging.Error).Println(err)
 				return allowed
 			}
 			return allowed
 		}
 	}
 
-	h.Logger.Printf("Cache hit for OnConnectAuthenticate Check for device : %s\n", cl.ID)
+	h.Logger.StandardLogger(logging.Info).Printf("Cache hit for OnConnectAuthenticate Check for device : %s\n", cl.ID)
 	return allowed.(bool)
 }
 
 func (h *FirestoreAuthHook) OnACLCheck(cl *mqtt.Client, topic string, write bool) bool {
-	h.Logger.Printf("OnACLCheck called for device : %s on topic : %s\n", cl.ID, topic)
+	h.Logger.StandardLogger(logging.Info).Printf("OnACLCheck called for device : %s on topic : %s\n", cl.ID, topic)
 
 	// ADMIN CHECK
 	if string(cl.Properties.Username) == "admin" {
@@ -98,22 +99,20 @@ func (h *FirestoreAuthHook) OnACLCheck(cl *mqtt.Client, topic string, write bool
 	formatted_topic := strings.ReplaceAll(topic, "/", "")
 	allowed, found := h.ACLCache.Get(cl.ID + "-" + formatted_topic)
 	if !found {
-		h.Logger.Printf("Cache miss for ACL Check : %s for topic : %s\n", cl.ID, topic)
+		h.Logger.StandardLogger(logging.Info).Printf("Cache miss for ACL Check : %s for topic : %s\n", cl.ID, topic)
 		if found, err := h.DB.GetClientAuthenticationACL(context.Background(), cl.ID, formatted_topic); err != nil {
 			return false
 		} else {
-			h.Logger.Printf("ACL check result : %t\n", found)
-			h.Logger.Printf("Adding ACL to cache for device id : %s for topic : %s\n", cl.ID, formatted_topic)
+			h.Logger.StandardLogger(logging.Info).Printf("ACL check result : %t\n", found)
+			h.Logger.StandardLogger(logging.Info).Printf("Adding ACL to cache for device id : %s for topic : %s\n", cl.ID, formatted_topic)
 			if err := h.ACLCache.Add(cl.ID+"-"+formatted_topic, found, cache.DefaultExpiration); err != nil {
-				h.Logger.Println(err)
+				h.Logger.StandardLogger(logging.Error).Println(err)
 			}
 
 			return found
 		}
 	}
 
-	h.Logger.Printf("Cache hit for ACL Check : %s for topic : %s\n", cl.ID, topic)
+	h.Logger.StandardLogger(logging.Info).Printf("Cache hit for ACL Check : %s for topic : %s\n", cl.ID, topic)
 	return allowed.(bool)
 }
-
-// func (h *FirestoreAuthHook) checkAdmin(cl *mqtt.Client, topic string, write bool) bool {

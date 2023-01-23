@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -17,8 +16,12 @@ import (
 )
 
 type GCPPubsubHook struct {
-	Logger *log.Logger
-	Pubsub ps.BrokerPubSub
+	Logger         *logging.Logger
+	Pubsub         domain.Pubsub
+	publishTopic   *pubsub.Topic
+	subscripeTopic *pubsub.Topic
+	connectTopic   *pubsub.Topic
+
 	mqtt.HookBase
 }
 
@@ -31,6 +34,8 @@ func (h *GCPPubsubHook) Provides(b byte) bool {
 		mqtt.OnConnect,
 		mqtt.OnDisconnect,
 		mqtt.OnPublished,
+		mqtt.OnSubscribed,
+		mqtt.OnUnsubscribed,
 	}, []byte{b})
 }
 
@@ -40,11 +45,19 @@ func (h *GCPPubsubHook) Init(config any) error {
 	// Pull Env Variables
 	pid, found := os.LookupEnv("GCP_PROJECT_ID")
 	if !found {
-		panic("GCP_PROJECT_ID not found ... panicing")
+		h.Logger.StandardLogger(logging.Debug).Println("GCP_PROJECT_ID not found")
 	}
-	bt, found := os.LookupEnv("BROKER_HOOK_GCPPUBSUB_TOPIC")
+	bt, found := os.LookupEnv("BROKER_HOOK_GCPPUBSUB_TOPIC_PUBLISH")
 	if !found {
-		panic("BROKER_HOOK_GCPPUBSUB_TOPIC not found ... panicing")
+		h.Logger.StandardLogger(logging.Debug).Println("BROKER_HOOK_GCPPUBSUB_TOPIC_PUBLISH not found")
+	}
+	st, found := os.LookupEnv("BROKER_HOOK_GCPPUBSUB_TOPIC_SUBSCRIBE")
+	if !found {
+		h.Logger.StandardLogger(logging.Debug).Println("BROKER_HOOK_GCPPUBSUB_TOPIC_SUBSCRIBE not found")
+	}
+	ct, found := os.LookupEnv("BROKER_HOOK_GCPPUBSUB_TOPIC_CONNECT")
+	if !found {
+		h.Logger.StandardLogger(logging.Debug).Println("BROKER_HOOK_GCPPUBSUB_TOPIC_CONNECT not found")
 	}
 
 	// Create and configure logger
@@ -53,7 +66,7 @@ func (h *GCPPubsubHook) Init(config any) error {
 		panic("Failed to create client")
 	}
 
-	logger := lc.Logger("go-broker-log").StandardLogger(logging.Info)
+	logger := lc.Logger("go-broker-log")
 
 	// Create and configure pubsub client
 	pc, err := pubsub.NewClient(ctx, pid)
@@ -61,8 +74,20 @@ func (h *GCPPubsubHook) Init(config any) error {
 		panic(fmt.Errorf("pubsub.NewClient: %v", err))
 	}
 
-	topic := pc.Topic(bt)
-	topic.PublishSettings = pubsub.PublishSettings{
+	pubslishtopic := pc.Topic(bt)
+	pubslishtopic.PublishSettings = pubsub.PublishSettings{
+		DelayThreshold: 1 * time.Second,
+		CountThreshold: 10,
+	}
+
+	subscribetopic := pc.Topic(st)
+	subscribetopic.PublishSettings = pubsub.PublishSettings{
+		DelayThreshold: 1 * time.Second,
+		CountThreshold: 10,
+	}
+
+	connecttopic := pc.Topic(ct)
+	connecttopic.PublishSettings = pubsub.PublishSettings{
 		DelayThreshold: 1 * time.Second,
 		CountThreshold: 10,
 	}
@@ -70,32 +95,84 @@ func (h *GCPPubsubHook) Init(config any) error {
 	// Create internal broker logic
 	bps := ps.BrokerPubSub{
 		Logger: *logger,
-		Topic:  topic,
 	}
 
-	h.Pubsub = bps
+	h.Pubsub = &bps
+	h.publishTopic = pubslishtopic
+	h.subscripeTopic = subscribetopic
+	h.connectTopic = connecttopic
 	h.Logger = logger
 
-	h.Logger.Println("initialised gcp pubsub hook")
+	h.Logger.StandardLogger(logging.Info).Println("initialised gcp pubsub hook")
 	return nil
 }
 
-func (h *GCPPubsubHook) OnConnect(cl *mqtt.Client, pk packets.Packet) {
-	h.Logger.Println("client connected")
+func (h *GCPPubsubHook) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
+	h.Logger.StandardLogger(logging.Info).Printf("Client %s unsubscribed to %s at %s", cl.ID, pk.TopicName, time.Now())
+	err := h.Pubsub.Publish(h.connectTopic, domain.SubscribePayload{
+		ClientID:   cl.ID,
+		Username:   string(cl.Properties.Username),
+		Timestamp:  time.Now(),
+		Subscribed: false,
+	})
+
+	if err != nil {
+		h.Logger.StandardLogger(logging.Error).Println(err)
+	}
+
 }
 
-func (h *GCPPubsubHook) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
-	h.Logger.Println("client disconnected")
+func (h *GCPPubsubHook) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes []byte) {
+	h.Logger.StandardLogger(logging.Info).Printf("Client %s subscribed to %s with reason codes %s at %s", cl.ID, pk.TopicName, reasonCodes, time.Now())
+	err := h.Pubsub.Publish(h.connectTopic, domain.SubscribePayload{
+		ClientID:   cl.ID,
+		Username:   string(cl.Properties.Username),
+		Timestamp:  time.Now(),
+		Subscribed: true,
+	})
+
+	if err != nil {
+		h.Logger.StandardLogger(logging.Error).Println(err)
+	}
+
+}
+
+func (h *GCPPubsubHook) OnConnect(cl *mqtt.Client, pk packets.Packet) {
+	h.Logger.StandardLogger(logging.Info).Printf("Client %s connected at %s", cl.ID, time.Now())
+	err := h.Pubsub.Publish(h.connectTopic, domain.ConnectPayload{
+		ClientID:  cl.ID,
+		Username:  string(cl.Properties.Username),
+		Timestamp: time.Now(),
+		Connected: true,
+	})
+
+	if err != nil {
+		h.Logger.StandardLogger(logging.Error).Println(err)
+	}
+}
+
+func (h *GCPPubsubHook) OnDisconnect(cl *mqtt.Client, connect_err error, expire bool) {
+	h.Logger.StandardLogger(logging.Info).Printf("Client %s disconnected at %s", cl.ID, time.Now())
+	err := h.Pubsub.Publish(h.connectTopic, domain.ConnectPayload{
+		ClientID:  cl.ID,
+		Username:  string(cl.Properties.Username),
+		Timestamp: time.Now(),
+		Connected: false,
+	})
+
+	if err != nil {
+		h.Logger.StandardLogger(logging.Error).Println(err)
+	}
 }
 
 func (h *GCPPubsubHook) OnPublished(cl *mqtt.Client, pk packets.Packet) {
-	h.Logger.Printf("Client %s published payload %s to client", cl.ID, string(pk.Payload))
-	err := h.Pubsub.Publish(domain.MQTTEvent{
+	h.Logger.StandardLogger(logging.Info).Printf("Client %s published payload %s to client", cl.ID, string(pk.Payload))
+	err := h.Pubsub.Publish(h.publishTopic, domain.MQTTEvent{
 		Topic:   pk.TopicName,
 		Payload: pk.Payload,
 	})
 
 	if err != nil {
-		fmt.Println(err)
+		h.Logger.StandardLogger(logging.Error).Println(err)
 	}
 }

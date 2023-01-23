@@ -37,18 +37,18 @@ func main() {
 	// Sets the name of the log to write to.
 	logName := "my-log"
 
-	logger := client.Logger(logName).StandardLogger(logging.Info)
+	logger := client.Logger(logName)
 
 	// ****************** CONFIGURE SSL ****************
 	certFile, err := os.ReadFile("etc/letsencrypt/live/testbroker.dev.upperz.org/cert.pem")
 	if err != nil {
-		logger.Println(err)
+		logger.StandardLogger(logging.Error).Println(err)
 		return
 	}
 
 	privateKey, err := os.ReadFile("etc/letsencrypt/live/testbroker.dev.upperz.org/privkey.pem")
 	if err != nil {
-		logger.Println(err)
+		logger.StandardLogger(logging.Error).Println(err)
 		return
 	}
 
