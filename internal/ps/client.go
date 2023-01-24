@@ -14,10 +14,11 @@ type BrokerPubSub struct {
 }
 
 func (bps *BrokerPubSub) Publish(topic *pubsub.Topic, data interface{}) error {
+	ctx := context.Background()
 	b, _ := json.Marshal(data)
 
 	// TODO : store results to check later
-	topic.Publish(context.Background(), &pubsub.Message{
+	topic.Publish(ctx, &pubsub.Message{
 		Data: b,
 	})
 

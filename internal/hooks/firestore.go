@@ -75,7 +75,7 @@ func (h *FirestoreAuthHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Pa
 			h.Logger.StandardLogger(logging.Error).Println(err)
 			return false
 		} else {
-			h.Logger.StandardLogger(logging.Error).Printf("Connect Authenticate check result : %t\n", allowed)
+			h.Logger.StandardLogger(logging.Info).Printf("Connect Authenticate check result : %t\n", allowed)
 			if err := h.OnConnectAuthenticateCache.Add(cl.ID, allowed, cache.DefaultExpiration); err != nil {
 				h.Logger.StandardLogger(logging.Info).Printf("Failed to save OnConnectAuthenticate result to cache for device : %s\n", cl.ID)
 				h.Logger.StandardLogger(logging.Error).Println(err)

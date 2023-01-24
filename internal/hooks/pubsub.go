@@ -109,7 +109,7 @@ func (h *GCPPubsubHook) Init(config any) error {
 
 func (h *GCPPubsubHook) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
 	h.Logger.StandardLogger(logging.Info).Printf("Client %s unsubscribed to %s at %s", cl.ID, pk.TopicName, time.Now())
-	err := h.Pubsub.Publish(h.connectTopic, domain.SubscribePayload{
+	err := h.Pubsub.Publish(h.subscripeTopic, domain.SubscribePayload{
 		ClientID:   cl.ID,
 		Username:   string(cl.Properties.Username),
 		Timestamp:  time.Now(),
@@ -124,7 +124,7 @@ func (h *GCPPubsubHook) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
 
 func (h *GCPPubsubHook) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes []byte) {
 	h.Logger.StandardLogger(logging.Info).Printf("Client %s subscribed to %s with reason codes %s at %s", cl.ID, pk.TopicName, reasonCodes, time.Now())
-	err := h.Pubsub.Publish(h.connectTopic, domain.SubscribePayload{
+	err := h.Pubsub.Publish(h.subscripeTopic, domain.SubscribePayload{
 		ClientID:   cl.ID,
 		Username:   string(cl.Properties.Username),
 		Timestamp:  time.Now(),
