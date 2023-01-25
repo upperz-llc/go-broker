@@ -66,11 +66,7 @@ func main() {
 	// *************************************************
 
 	// CONFIGS
-	// gcphook, err := hooks.Initialize(ctx)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
+	// TODO : Look into if this is the right way
 	fsh := new(hooks.FirestoreAuthHook)
 	fsh.Logger = logger
 
