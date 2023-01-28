@@ -4,16 +4,13 @@ import (
 	"context"
 	"crypto/tls"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"cloud.google.com/go/logging"
-	"github.com/go-chi/chi/v5"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/listeners"
-	"github.com/upperz-llc/go-broker/internal/handler"
 	"github.com/upperz-llc/go-broker/internal/hooks"
 )
 
@@ -110,16 +107,16 @@ func main() {
 		}
 	}()
 
-	handler := handler.Handler{
-		Server: server,
-	}
+	// handler := handler.Handler{
+	// 	Server: server,
+	// }
 
-	r := chi.NewRouter()
-	r.Route("/api/v1", func(r chi.Router) {
-		r.Get("/test", handler.Handle)
-	})
+	// r := chi.NewRouter()
+	// r.Route("/api/v1", func(r chi.Router) {
+	// 	r.Get("/test", handler.Handle)
+	// })
 
-	go http.ListenAndServe(":8080", r)
+	// go http.ListenAndServe(":8080", r)
 
 	<-done
 	server.Log.Warn().Msg("caught signal, stopping...")
