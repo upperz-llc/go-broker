@@ -43,4 +43,7 @@ EXPOSE 1882
 # dashboard
 EXPOSE 8080
 
+# api
+EXPOSE 8081
+
 CMD ["/bin/bash","-c","/run.sh"]

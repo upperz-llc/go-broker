@@ -7,6 +7,7 @@ require (
 	cloud.google.com/go/logging v1.6.1
 	cloud.google.com/go/pubsub v1.28.0
 	firebase.google.com/go/v4 v4.10.0
+	github.com/go-chi/chi/v5 v5.0.8
 	github.com/golang/mock v1.6.0
 	github.com/mochi-co/mqtt/v2 v2.1.6
 	github.com/patrickmn/go-cache v2.1.0+incompatible

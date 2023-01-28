@@ -9,9 +9,11 @@ import (
 	"syscall"
 
 	"cloud.google.com/go/logging"
+
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/listeners"
 	"github.com/upperz-llc/go-broker/internal/hooks"
+	"github.com/upperz-llc/go-broker/internal/webserver"
 )
 
 func main() {
@@ -89,11 +91,11 @@ func main() {
 	})
 
 	// Create HTTP Stats Listener
-	// stats := listeners.NewHTTPStats("stats", ":8080", nil, server.Info)
-	// err = server.AddListener(stats)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	stats := listeners.NewHTTPStats("stats", ":8080", nil, server.Info)
+	err = server.AddListener(stats)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	err = server.AddListener(tcp)
 	if err != nil {
@@ -107,16 +109,7 @@ func main() {
 		}
 	}()
 
-	// handler := handler.Handler{
-	// 	Server: server,
-	// }
-
-	// r := chi.NewRouter()
-	// r.Route("/api/v1", func(r chi.Router) {
-	// 	r.Get("/test", handler.Handle)
-	// })
-
-	// go http.ListenAndServe(":8080", r)
+	go webserver.StartWebServer(server)
 
 	<-done
 	server.Log.Warn().Msg("caught signal, stopping...")
