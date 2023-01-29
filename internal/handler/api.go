@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/mochi-co/mqtt/v2"
-	"github.com/upperz-llc/go-broker/internal/domain"
+	"github.com/upperz-llc/go-broker/pkg/domain"
 )
 
 type Handler struct {
