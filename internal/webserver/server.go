@@ -9,7 +9,7 @@ import (
 )
 
 func StartWebServer(server *mqtt.Server) {
-	handler := handler.Handler{
+	handler := handler.APIHandler{
 		Server: server,
 	}
 
@@ -17,7 +17,7 @@ func StartWebServer(server *mqtt.Server) {
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Route("/client", func(r chi.Router) {
 			r.Route("/{client_id}", func(r chi.Router) {
-				r.Get("/online", handler.Handle)
+				r.Get("/connection_status", handler.HandleGetConnectionStatus)
 			})
 		})
 	})
