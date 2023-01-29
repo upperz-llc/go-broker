@@ -2,22 +2,24 @@ package domain
 
 import "time"
 
-// MQTTEvent placeholder
-type MQTTEvent struct {
-	Topic   string `json:"topic"`
-	Payload []byte `json:"payload"`
+// MochiPublishMessage placeholder
+type MochiPublishMessage struct {
+	ClientID  string    `json:"client_id"`
+	Topic     string    `json:"topic"`
+	Payload   []byte    `json:"payload"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
-// MQTTEvent placeholder
-type ConnectPayload struct {
+// MochiConnectMessage placeholder
+type MochiConnectMessage struct {
 	ClientID  string    `json:"client_id"`
 	Username  string    `json:"username"`
 	Timestamp time.Time `json:"timestamp"`
 	Connected bool      `json:"connected"`
 }
 
-// MQTTEvent placeholder
-type SubscribePayload struct {
+// MochiSubscribeMessage placeholder
+type MochiSubscribeMessage struct {
 	ClientID   string    `json:"client_id"`
 	Username   string    `json:"username"`
 	Topic      string    `json:"topic"`

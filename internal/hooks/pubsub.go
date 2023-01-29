@@ -13,6 +13,7 @@ import (
 	"github.com/mochi-co/mqtt/v2/packets"
 	"github.com/upperz-llc/go-broker/internal/domain"
 	"github.com/upperz-llc/go-broker/internal/ps"
+	internalpkg "github.com/upperz-llc/go-broker/pkg/domain"
 )
 
 type GCPPubsubHook struct {
@@ -109,11 +110,12 @@ func (h *GCPPubsubHook) Init(config any) error {
 
 func (h *GCPPubsubHook) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
 	h.Logger.StandardLogger(logging.Debug).Printf("Client %s unsubscribed to %s at %s", cl.ID, pk.TopicName, time.Now())
-	err := h.Pubsub.Publish(h.subscripeTopic, domain.SubscribePayload{
+	err := h.Pubsub.Publish(h.subscripeTopic, internalpkg.MochiSubscribeMessage{
 		ClientID:   cl.ID,
 		Username:   string(cl.Properties.Username),
 		Timestamp:  time.Now(),
 		Subscribed: false,
+		Topic:      pk.TopicName,
 	})
 
 	if err != nil {
@@ -124,11 +126,12 @@ func (h *GCPPubsubHook) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
 
 func (h *GCPPubsubHook) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes []byte) {
 	h.Logger.StandardLogger(logging.Debug).Printf("Client %s subscribed to %s with reason codes %s at %s", cl.ID, pk.TopicName, reasonCodes, time.Now())
-	err := h.Pubsub.Publish(h.subscripeTopic, domain.SubscribePayload{
+	err := h.Pubsub.Publish(h.subscripeTopic, internalpkg.MochiSubscribeMessage{
 		ClientID:   cl.ID,
 		Username:   string(cl.Properties.Username),
 		Timestamp:  time.Now(),
 		Subscribed: true,
+		Topic:      pk.TopicName,
 	})
 
 	if err != nil {
@@ -139,7 +142,7 @@ func (h *GCPPubsubHook) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonC
 
 func (h *GCPPubsubHook) OnConnect(cl *mqtt.Client, pk packets.Packet) {
 	h.Logger.StandardLogger(logging.Debug).Printf("Client %s connected at %s", cl.ID, time.Now())
-	err := h.Pubsub.Publish(h.connectTopic, domain.ConnectPayload{
+	err := h.Pubsub.Publish(h.connectTopic, internalpkg.MochiConnectMessage{
 		ClientID:  cl.ID,
 		Username:  string(cl.Properties.Username),
 		Timestamp: time.Now(),
@@ -153,7 +156,7 @@ func (h *GCPPubsubHook) OnConnect(cl *mqtt.Client, pk packets.Packet) {
 
 func (h *GCPPubsubHook) OnDisconnect(cl *mqtt.Client, connect_err error, expire bool) {
 	h.Logger.StandardLogger(logging.Debug).Printf("Client %s disconnected at %s", cl.ID, time.Now())
-	err := h.Pubsub.Publish(h.connectTopic, domain.ConnectPayload{
+	err := h.Pubsub.Publish(h.connectTopic, internalpkg.MochiConnectMessage{
 		ClientID:  cl.ID,
 		Username:  string(cl.Properties.Username),
 		Timestamp: time.Now(),
@@ -167,9 +170,11 @@ func (h *GCPPubsubHook) OnDisconnect(cl *mqtt.Client, connect_err error, expire 
 
 func (h *GCPPubsubHook) OnPublished(cl *mqtt.Client, pk packets.Packet) {
 	h.Logger.StandardLogger(logging.Debug).Printf("Client %s published payload %s to client", cl.ID, string(pk.Payload))
-	err := h.Pubsub.Publish(h.publishTopic, domain.MQTTEvent{
-		Topic:   pk.TopicName,
-		Payload: pk.Payload,
+	err := h.Pubsub.Publish(h.publishTopic, internalpkg.MochiPublishMessage{
+		ClientID:  cl.ID,
+		Topic:     pk.TopicName,
+		Payload:   pk.Payload,
+		Timestamp: time.Now(),
 	})
 
 	if err != nil {
