@@ -20,7 +20,7 @@ func (mbac *MochiBrokerAPIClient) GetClientConnectionStatus(ctx context.Context,
 }
 
 func NewClient(ctx context.Context) (*MochiBrokerAPIClient, error) {
-	mHTTP, err := NewMochiBrokerAPIHTTP(ctx)
+	mHTTP, err := NewMochiBrokerAPIHTTP(ctx, nil)
 	if err != nil {
 		return nil, err
 	}

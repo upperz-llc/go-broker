@@ -45,20 +45,28 @@ func (mhttp *MochiBrokerAPIHTTP) GetClientConnectionStatus(ctx context.Context, 
 	return cs, nil
 }
 
-func NewMochiBrokerAPIHTTP(ctx context.Context) (*MochiBrokerAPIHTTP, error) {
+func NewMochiBrokerAPIHTTP(ctx context.Context, hc *http.Client) (*MochiBrokerAPIHTTP, error) {
 	endpoint, found := os.LookupEnv("MOCHI_BROKER_API_HTTP_ENDPOINT")
 	if !found {
 		return nil, errors.New("MOCHI_BROKER_API_HTTP_ENDPOINT not found")
 	}
 	// client is a http.Client that automatically adds an "Authorization" header
 	// to any requests made.
-	client, err := idtoken.NewClient(ctx, endpoint)
-	if err != nil {
-		return nil, err
+	var httpclient *http.Client
+	if hc == nil {
+		httpclient = hc
+
+	} else {
+		client, err := idtoken.NewClient(ctx, endpoint)
+		if err != nil {
+			return nil, err
+		}
+		httpclient = client
+
 	}
 
 	return &MochiBrokerAPIHTTP{
-		HTTPClient: client,
+		HTTPClient: httpclient,
 		Endpoint:   endpoint,
 	}, nil
 }
