@@ -53,7 +53,7 @@ func NewMochiBrokerAPIHTTP(ctx context.Context, hc *http.Client) (*MochiBrokerAP
 	// client is a http.Client that automatically adds an "Authorization" header
 	// to any requests made.
 	var httpclient *http.Client
-	if hc == nil {
+	if hc != nil {
 		httpclient = hc
 
 	} else {
