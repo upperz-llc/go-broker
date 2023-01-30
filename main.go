@@ -91,11 +91,11 @@ func main() {
 	})
 
 	// Create HTTP Stats Listener
-	stats := listeners.NewHTTPStats("stats", ":8080", nil, server.Info)
-	err = server.AddListener(stats)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// stats := listeners.NewHTTPStats("stats", ":8080", nil, server.Info)
+	// err = server.AddListener(stats)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	err = server.AddListener(tcp)
 	if err != nil {
