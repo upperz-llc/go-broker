@@ -7,7 +7,7 @@ import (
 )
 
 type MochiBrokerAPIClient struct {
-	HTTP domain.BrokerAPIIface
+	HTTP domain.BrokerAPIHTTPIface
 }
 
 func (mbac *MochiBrokerAPIClient) GetClientConnectionStatus(ctx context.Context, clientID string) (bool, error) {
