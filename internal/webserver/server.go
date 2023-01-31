@@ -22,5 +22,5 @@ func StartWebServer(server *mqtt.Server) {
 		})
 	})
 
-	go http.ListenAndServe(":8080", r)
+	go http.ListenAndServe(":80", r)
 }

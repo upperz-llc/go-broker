@@ -34,6 +34,8 @@ RUN chmod +x /run.sh
 RUN chmod +x /certbot.sh
 RUN chmod +x /etc/periodic/weekly/croncert.sh
 
+EXPOSE 80
+
 # tcp
 EXPOSE 1883
 
