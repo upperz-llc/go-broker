@@ -110,6 +110,9 @@ func (h *GCPPubsubHook) Init(config any) error {
 
 func (h *GCPPubsubHook) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
 	h.Logger.StandardLogger(logging.Debug).Printf("Client %s unsubscribed to %s at %s", cl.ID, pk.TopicName, time.Now())
+	if cl.ID == "admin" {
+		return
+	}
 	err := h.Pubsub.Publish(h.subscripeTopic, internalpkg.MochiSubscribeMessage{
 		ClientID:   cl.ID,
 		Username:   string(cl.Properties.Username),
@@ -126,6 +129,9 @@ func (h *GCPPubsubHook) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
 
 func (h *GCPPubsubHook) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes []byte) {
 	h.Logger.StandardLogger(logging.Debug).Printf("Client %s subscribed to %s with reason codes %s at %s", cl.ID, pk.TopicName, reasonCodes, time.Now())
+	if cl.ID == "admin" {
+		return
+	}
 	err := h.Pubsub.Publish(h.subscripeTopic, internalpkg.MochiSubscribeMessage{
 		ClientID:   cl.ID,
 		Username:   string(cl.Properties.Username),
@@ -142,6 +148,9 @@ func (h *GCPPubsubHook) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonC
 
 func (h *GCPPubsubHook) OnConnect(cl *mqtt.Client, pk packets.Packet) {
 	h.Logger.StandardLogger(logging.Debug).Printf("Client %s connected at %s", cl.ID, time.Now())
+	if cl.ID == "admin" {
+		return
+	}
 	err := h.Pubsub.Publish(h.connectTopic, internalpkg.MochiConnectMessage{
 		ClientID:  cl.ID,
 		Username:  string(cl.Properties.Username),
@@ -156,6 +165,9 @@ func (h *GCPPubsubHook) OnConnect(cl *mqtt.Client, pk packets.Packet) {
 
 func (h *GCPPubsubHook) OnDisconnect(cl *mqtt.Client, connect_err error, expire bool) {
 	h.Logger.StandardLogger(logging.Debug).Printf("Client %s disconnected at %s", cl.ID, time.Now())
+	if cl.ID == "admin" {
+		return
+	}
 	err := h.Pubsub.Publish(h.connectTopic, internalpkg.MochiConnectMessage{
 		ClientID:  cl.ID,
 		Username:  string(cl.Properties.Username),
