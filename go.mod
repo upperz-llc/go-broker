@@ -9,10 +9,10 @@ require (
 	firebase.google.com/go/v4 v4.10.0
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/golang/mock v1.6.0
-	github.com/mochi-co/mqtt/v2 v2.1.6
+	github.com/mochi-co/mqtt/v2 v2.1.8
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/stretchr/testify v1.8.1
-	google.golang.org/api v0.108.0
+	google.golang.org/api v0.109.0
 	google.golang.org/grpc v1.52.3
 )
 
