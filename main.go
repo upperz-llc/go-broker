@@ -69,8 +69,11 @@ func main() {
 
 	// CONFIGS
 	// TODO : Look into if this is the right way
-	fsh := new(hooks.FirestoreAuthHook)
-	fsh.Logger = logger
+	// fsh := new(hooks.FirestoreAuthHook)
+	// fsh.Logger = logger
+
+	hah := new(hooks.HTTPAuthHook)
+	hah.Logger = logger
 
 	gcph := new(hooks.GCPPubsubHook)
 	gcph.Logger = logger
@@ -82,7 +85,8 @@ func main() {
 
 	// Allow all connections.
 	// _ = server.AddHook(new(auth.AllowHook), nil)
-	_ = server.AddHook(fsh, nil)
+	// _ = server.AddHook(fsh, nil)
+	_ = server.AddHook(hah, nil)
 	_ = server.AddHook(gcph, nil)
 
 	// Create a TCP listener on a standard port.
