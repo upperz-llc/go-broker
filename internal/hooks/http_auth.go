@@ -18,7 +18,7 @@ type HTTPAuthHook struct {
 }
 
 func (h *HTTPAuthHook) ID() string {
-	return "firebase-auth-hook"
+	return "http-auth-hook"
 }
 
 func (h *HTTPAuthHook) Provides(b byte) bool {
