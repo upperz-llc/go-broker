@@ -16,64 +16,22 @@ func getAdminCredentials(ctx context.Context) (string, error) {
 	}
 	defer client.Close()
 
-	secret, err := client.GetSecret(ctx, &secretmanagerpb.GetSecretRequest{
-		Name: "projects/481474188273/secrets/BROKER_ADMIN",
-	})
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println(secret.String())
-
-	resp, err := client.AccessSecretVersion(ctx, &secretmanagerpb.AccessSecretVersionRequest{
-		Name: "projects/481474188273/secrets/BROKER_ADMIN/versions/latest",
-	})
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-
-	fmt.Println(string(resp.Payload.String()))
-	fmt.Println(string(resp.Payload.Data))
-
-	resp, err = client.AccessSecretVersion(ctx, &secretmanagerpb.AccessSecretVersionRequest{
-		Name: "projects/freezer-monitor-dev-e7d4c/secrets/BROKER_ADMIN/versions/latest",
-	})
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-
-	fmt.Println(string(resp.Payload.String()))
-	fmt.Println(string(resp.Payload.Data))
-
-	resp, err = client.AccessSecretVersion(ctx, &secretmanagerpb.AccessSecretVersionRequest{
-		Name: "projects/freezer-monitor-dev-e7d4c/secrets/BROKER_ADMIN/versions/latest",
-	})
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-
-	fmt.Println(string(resp.Payload.String()))
-	fmt.Println(string(resp.Payload.Data))
-
 	// secret, err := client.GetSecret(ctx, &secretmanagerpb.GetSecretRequest{
 	// 	Name: "projects/481474188273/secrets/BROKER_ADMIN",
 	// })
 	// if err != nil {
 	// 	fmt.Println(err)
-	// 	return "", err
 	// }
+
 	// fmt.Println(secret.String())
+	// secret.
 
-	// secret, err = client.GetSecret(ctx, &secretmanagerpb.GetSecretRequest{
-	// 	Name: "BROKER_ADMIN",
-	// })
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return "", err
-	// }
+	resp, err := client.AccessSecretVersion(ctx, &secretmanagerpb.AccessSecretVersionRequest{
+		Name: "projects/481474188273/secrets/BROKER_ADMIN/versions/latest",
+	})
+	if err != nil {
+		return "", err
+	}
 
-	return "admin", nil
+	return string(resp.Payload.Data), nil
 }
