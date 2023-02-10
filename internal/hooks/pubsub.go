@@ -11,12 +11,14 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/packets"
+	"github.com/upperz-llc/go-broker/internal/admin"
 	"github.com/upperz-llc/go-broker/internal/domain"
 	"github.com/upperz-llc/go-broker/internal/ps"
 	internalpkg "github.com/upperz-llc/go-broker/pkg/domain"
 )
 
 type GCPPubsubHook struct {
+	admin          *admin.Admin
 	Logger         *logging.Logger
 	Pubsub         domain.Pubsub
 	publishTopic   *pubsub.Topic
@@ -42,6 +44,13 @@ func (h *GCPPubsubHook) Provides(b byte) bool {
 
 func (h *GCPPubsubHook) Init(config any) error {
 	ctx := context.Background()
+
+	admin, err := admin.NewAdmin(ctx)
+	if err != nil {
+		return err
+	}
+
+	h.admin = admin
 
 	// Pull Env Variables
 	pid, found := os.LookupEnv("GCP_PROJECT_ID")
@@ -129,9 +138,13 @@ func (h *GCPPubsubHook) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
 
 func (h *GCPPubsubHook) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes []byte) {
 	h.Logger.StandardLogger(logging.Debug).Printf("Client %s subscribed to %s with reason codes %s at %s", cl.ID, pk.TopicName, reasonCodes, time.Now())
-	if cl.ID == "admin" {
+
+	// CHECK ADMIN
+	if string(cl.Properties.Username) == h.admin.GetAdminCredentials() {
 		return
 	}
+	// ****************************
+
 	err := h.Pubsub.Publish(h.subscripeTopic, internalpkg.MochiSubscribeMessage{
 		ClientID:   cl.ID,
 		Username:   string(cl.Properties.Username),
@@ -148,9 +161,13 @@ func (h *GCPPubsubHook) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonC
 
 func (h *GCPPubsubHook) OnConnect(cl *mqtt.Client, pk packets.Packet) {
 	h.Logger.StandardLogger(logging.Debug).Printf("Client %s connected at %s", cl.ID, time.Now())
-	if cl.ID == "admin" {
+
+	// CHECK ADMIN
+	if string(cl.Properties.Username) == h.admin.GetAdminCredentials() {
 		return
 	}
+	// ****************************
+
 	err := h.Pubsub.Publish(h.connectTopic, internalpkg.MochiConnectMessage{
 		ClientID:  cl.ID,
 		Username:  string(cl.Properties.Username),
