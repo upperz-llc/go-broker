@@ -29,7 +29,7 @@ func (h *HTTPAuthHook) Provides(b byte) bool {
 }
 
 func (h *HTTPAuthHook) Init(config any) error {
-	httpclient, err := httpauth.NewClient(context.Background())
+	httpclient, err := httpauth.NewClient(context.Background(), nil)
 	if err != nil {
 		return err
 	}
