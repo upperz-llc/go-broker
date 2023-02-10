@@ -22,6 +22,17 @@ func getAdminCredentials(ctx context.Context) (string, error) {
 		fmt.Println(err)
 		return "", err
 	}
+	fmt.Println(secret.String())
+
+	secret, err = client.GetSecret(ctx, &secretmanagerpb.GetSecretRequest{
+		Name: "BROKER_ADMIN",
+	})
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+
+	fmt.Println(secret.String())
 
 	return secret.String(), nil
 }
