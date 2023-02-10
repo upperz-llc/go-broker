@@ -17,8 +17,9 @@ func getAdminCredentials(ctx context.Context) (string, error) {
 
 	secret, err := client.GetSecret(ctx, &secretmanagerpb.GetSecretRequest{
 		Name: "projects/freezer-monitor-dev-e7d4c/secrets/BROKER_ADMIN",
-	}, nil)
+	})
 	if err != nil {
+
 		return "", err
 	}
 
