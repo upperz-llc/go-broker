@@ -3,6 +3,7 @@ package hooks
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"strconv"
 
 	"cloud.google.com/go/logging"
@@ -51,6 +52,8 @@ func (h *HTTPAuthHook) Init(config any) error {
 }
 
 func (h *HTTPAuthHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
+
+	fmt.Println(h.admin.GetAdminCredentials())
 	// CHECK ADMIN
 	if string(pk.Connect.Username) == h.admin.GetAdminCredentials() {
 		return true
