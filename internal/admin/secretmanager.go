@@ -19,7 +19,7 @@ func getAdminCredentials(ctx context.Context) (string, error) {
 		Name: "projects/freezer-monitor-dev-e7d4c/secrets/BROKER_ADMIN",
 	})
 	if err != nil {
-
+		fmt.Println(err)
 		return "", err
 	}
 
