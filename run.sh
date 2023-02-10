@@ -1,5 +1,5 @@
 #!/bin/bash
 
-. ./certbot.sh
+/certbot.sh
 
-/mochi
+# /mochi
