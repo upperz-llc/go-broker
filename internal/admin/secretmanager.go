@@ -9,6 +9,7 @@ import (
 )
 
 func getAdminCredentials(ctx context.Context) (string, error) {
+	fmt.Println("getAdminCredentials")
 	client, err := secretmanager.NewClient(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to create secretmanager client: %v", err)
