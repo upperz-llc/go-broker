@@ -65,5 +65,5 @@ func getAdminCredentials(ctx context.Context) (string, error) {
 	// 	return "", err
 	// }
 
-	return "", nil
+	return "admin", nil
 }
