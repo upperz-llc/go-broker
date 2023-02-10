@@ -13,7 +13,6 @@ require (
 	github.com/mochi-co/mqtt/v2 v2.1.8
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/stretchr/testify v1.8.1
-	github.com/upperz-llc/http-auth-backend v0.0.2
 	google.golang.org/api v0.109.0
 	google.golang.org/grpc v1.53.0
 )

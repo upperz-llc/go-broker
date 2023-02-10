@@ -9,7 +9,7 @@ import (
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/packets"
 	"github.com/upperz-llc/go-broker/internal/admin"
-	httpauth "github.com/upperz-llc/http-auth-backend/pkg/api"
+	"github.com/upperz-llc/go-broker/internal/httpauth"
 )
 
 type HTTPAuthHook struct {
