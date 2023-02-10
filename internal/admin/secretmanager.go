@@ -16,6 +16,15 @@ func getAdminCredentials(ctx context.Context) (string, error) {
 	}
 	defer client.Close()
 
+	secret, err := client.GetSecret(ctx, &secretmanagerpb.GetSecretRequest{
+		Name: "projects/481474188273/secrets/BROKER_ADMIN",
+	})
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(secret.String())
+
 	resp, err := client.AccessSecretVersion(ctx, &secretmanagerpb.AccessSecretVersionRequest{
 		Name: "projects/481474188273/secrets/BROKER_ADMIN/versions/latest",
 	})
