@@ -2,16 +2,12 @@ FROM golang:1.19.0-alpine3.15 AS builder
 
 RUN apk update
 RUN apk upgrade
-# RUN apk add bash
-RUN apk add git
-# RUN apk add certbot
 
 WORKDIR /app
 
 COPY go.mod ./
 COPY go.sum ./
-COPY vendor ./
-# RUN go mod download
+RUN go mod download
 
 COPY . ./
 
@@ -22,7 +18,6 @@ FROM alpine
 RUN apk update
 RUN apk upgrade
 RUN apk add bash
-RUN apk add git
 RUN apk add certbot
 
 WORKDIR /
