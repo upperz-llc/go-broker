@@ -16,7 +16,7 @@ func getAdminCredentials(ctx context.Context) (string, error) {
 	defer client.Close()
 
 	secret, err := client.GetSecret(ctx, &secretmanagerpb.GetSecretRequest{
-		Name: "BROKER_ADMIN",
+		Name: "projects/481474188273/secrets/BROKER_ADMIN",
 	}, nil)
 	if err != nil {
 		return "", err
