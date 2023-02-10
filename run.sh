@@ -2,4 +2,4 @@
 
 /certbot.sh
 
-# /mochi
+/mochi
