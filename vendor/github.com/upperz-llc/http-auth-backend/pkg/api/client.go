@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/upperz-llc/http-auth-backend/internal/domain"
 )
@@ -46,7 +45,7 @@ func (mbac *HTTPAuthBackendClient) CheckSuperUserAuth(ctx context.Context, usern
 	return mbac.HTTP.CheckSuperUserAuth(ctx, payload)
 }
 
-func NewClient(ctx context.Context, hc *http.Client) (*HTTPAuthBackendClient, error) {
+func NewClient(ctx context.Context) (*HTTPAuthBackendClient, error) {
 	mHTTP, err := NewMochiBrokerAPIHTTP(ctx, nil)
 	if err != nil {
 		return nil, err

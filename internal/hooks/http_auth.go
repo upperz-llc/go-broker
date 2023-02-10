@@ -8,11 +8,13 @@ import (
 	"cloud.google.com/go/logging"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/packets"
+	"github.com/upperz-llc/go-broker/internal/admin"
 	httpauth "github.com/upperz-llc/http-auth-backend/pkg/api"
 )
 
 type HTTPAuthHook struct {
-	HTTPClient *httpauth.HTTPAuthBackendClient
+	admin      *admin.Admin
+	httpClient *httpauth.HTTPAuthBackendClient
 	Logger     *logging.Logger
 	mqtt.HookBase
 }
@@ -29,39 +31,55 @@ func (h *HTTPAuthHook) Provides(b byte) bool {
 }
 
 func (h *HTTPAuthHook) Init(config any) error {
-	httpclient, err := httpauth.NewClient(context.Background(), nil)
+	ctx := context.Background()
+
+	admin, err := admin.NewAdmin(ctx)
 	if err != nil {
 		return err
 	}
 
-	h.HTTPClient = httpclient
-	h.Logger.StandardLogger(logging.Debug).Println("initialized httpauth")
+	httpclient, err := httpauth.NewClient(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	h.httpClient = httpclient
+	h.admin = admin
+
+	h.Logger.StandardLogger(logging.Debug).Println("initialized http-auth-hook")
 	return nil
 }
 
 func (h *HTTPAuthHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
 	// CHECK ADMIN
-	if cl.ID == "admin" && string(pk.Connect.Username) == "admin" {
+	if string(pk.Connect.Username) == h.admin.GetAdminCredentials() {
 		return true
 	}
 	// ****************************
-	allowed, err := h.HTTPClient.CheckClientAuth(context.Background(), cl.ID, string(pk.Connect.Username), string(pk.Connect.Password))
+
+	// Call HTTP auth backend
+	allowed, err := h.httpClient.CheckClientAuth(context.Background(), cl.ID, string(pk.Connect.Username), string(pk.Connect.Password))
 	if err != nil {
 		h.Logger.StandardLogger(logging.Error).Println(err)
 	}
+	// ****************************
+
 	return allowed
 }
 
 func (h *HTTPAuthHook) OnACLCheck(cl *mqtt.Client, topic string, write bool) bool {
 	// CHECK ADMIN
-	if cl.ID == "admin" && string(cl.Properties.Username) == "admin" {
+	if string(cl.Properties.Username) == h.admin.GetAdminCredentials() {
 		return true
 	}
 	// ****************************
-	allowed, err := h.HTTPClient.CheckClientACLs(context.Background(), cl.ID, string(cl.Properties.Username), topic, strconv.FormatBool(write))
+
+	// Call HTTP auth backend
+	allowed, err := h.httpClient.CheckClientACLs(context.Background(), cl.ID, string(cl.Properties.Username), topic, strconv.FormatBool(write))
 	if err != nil {
 		h.Logger.StandardLogger(logging.Error).Println(err)
 	}
+	// ****************************
 
 	return allowed
 }
