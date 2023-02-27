@@ -10,6 +10,7 @@ import (
 
 	"cloud.google.com/go/logging"
 
+	mch "github.com/dgduncan/mochi-cloud-hooks"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/listeners"
 	"github.com/upperz-llc/go-broker/internal/hooks"
@@ -72,8 +73,9 @@ func main() {
 	// fsh := new(hooks.FirestoreAuthHook)
 	// fsh.Logger = logger
 
-	hah := new(hooks.HTTPAuthHook)
-	hah.Logger = logger
+	ah := new(mch.HTTPAuthHook)
+
+	gcsmh := new(mch.SecretManagerAuthHook)
 
 	gcph := new(hooks.GCPPubsubHook)
 	gcph.Logger = logger
@@ -86,7 +88,19 @@ func main() {
 	// Allow all connections.
 	// _ = server.AddHook(new(auth.AllowHook), nil)
 	// _ = server.AddHook(fsh, nil)
-	_ = server.AddHook(hah, nil)
+	// _ = server.AddHook(hah, nil)
+
+	gcphConfig, err := hooks.NewMochiCloudHooksSecretManagerConfig(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	httpauthconfig, err := hooks.NewMochiCloudHooksHTTPAuthConfig(ctx)
+	if err != nil {
+		panic(err)
+	}
+	_ = server.AddHook(gcsmh, gcphConfig)
+	_ = server.AddHook(ah, httpauthconfig)
 	_ = server.AddHook(gcph, nil)
 
 	// Create a TCP listener on a standard port.
