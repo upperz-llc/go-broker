@@ -102,12 +102,12 @@ func main() {
 		panic(err)
 	}
 
-	err = server.AddHook(gcsmh, gcphConfig)
+	err = server.AddHook(gcsmh, *gcphConfig)
 	if err != nil {
 		logger.StandardLogger(logging.Alert).Println(err)
 		panic(err)
 	}
-	err = server.AddHook(ah, httpauthconfig)
+	err = server.AddHook(ah, *httpauthconfig)
 	if err != nil {
 		logger.StandardLogger(logging.Alert).Println(err)
 		panic(err)
