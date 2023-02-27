@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -93,29 +92,29 @@ func main() {
 
 	gcphConfig, err := hooks.NewMochiCloudHooksSecretManagerConfig(ctx)
 	if err != nil {
-		fmt.Println(err)
+		logger.StandardLogger(logging.Alert).Println(err)
 		panic(err)
 	}
 
 	httpauthconfig, err := hooks.NewMochiCloudHooksHTTPAuthConfig(ctx)
 	if err != nil {
-		fmt.Println(err)
+		logger.StandardLogger(logging.Alert).Println(err)
 		panic(err)
 	}
 
 	err = server.AddHook(gcsmh, gcphConfig)
 	if err != nil {
-		fmt.Println(err)
+		logger.StandardLogger(logging.Alert).Println(err)
 		panic(err)
 	}
 	err = server.AddHook(ah, httpauthconfig)
 	if err != nil {
-		fmt.Println(err)
+		logger.StandardLogger(logging.Alert).Println(err)
 		panic(err)
 	}
 	err = server.AddHook(gcph, nil)
 	if err != nil {
-		fmt.Println(err)
+		logger.StandardLogger(logging.Alert).Println(err)
 		panic(err)
 	}
 
