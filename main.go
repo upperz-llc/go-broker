@@ -28,9 +28,13 @@ func main() {
 		done <- true
 	}()
 
+	// Create the new MQTT Server.
+	server := mqtt.New(&mqtt.Options{})
+
 	// ****************** CONFIGURE LOGGING ************
 
 	// Creates a client.
+	// TODO : use env variable to use project ID
 	client, err := logging.NewClient(ctx, "freezer-monitor-dev-e7d4c")
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
@@ -38,7 +42,7 @@ func main() {
 	defer client.Close()
 
 	// Sets the name of the log to write to.
-	logName := "my-log"
+	logName := "mochi-broker"
 
 	logger := client.Logger(logName)
 
@@ -65,7 +69,6 @@ func main() {
 	tlsConfig := &tls.Config{
 		Certificates: []tls.Certificate{cert},
 	}
-
 	// *************************************************
 
 	// CONFIGS
@@ -82,40 +85,29 @@ func main() {
 
 	// *************************************
 
-	// Create the new MQTT Server.
-	server := mqtt.New(nil)
-
-	// Allow all connections.
-	// _ = server.AddHook(new(auth.AllowHook), nil)
-	// _ = server.AddHook(fsh, nil)
-	// _ = server.AddHook(hah, nil)
-
 	gcphConfig, err := hooks.NewMochiCloudHooksSecretManagerConfig(ctx)
 	if err != nil {
-		logger.StandardLogger(logging.Alert).Println(err)
-		panic(err)
+		logger.StandardLogger(logging.Error).Println(err)
+		return
 	}
 
 	httpauthconfig, err := hooks.NewMochiCloudHooksHTTPAuthConfig(ctx)
 	if err != nil {
-		logger.StandardLogger(logging.Alert).Println(err)
-		panic(err)
+		logger.StandardLogger(logging.Error).Println(err)
+		return
 	}
 
-	err = server.AddHook(gcsmh, *gcphConfig)
-	if err != nil {
-		logger.StandardLogger(logging.Alert).Println(err)
-		panic(err)
+	if err = server.AddHook(gcsmh, *gcphConfig); err != nil {
+		logger.StandardLogger(logging.Error).Println(err)
+		return
 	}
-	err = server.AddHook(ah, *httpauthconfig)
-	if err != nil {
+	if err = server.AddHook(ah, *httpauthconfig); err != nil {
 		logger.StandardLogger(logging.Alert).Println(err)
-		panic(err)
+		return
 	}
-	err = server.AddHook(gcph, nil)
-	if err != nil {
+	if err = server.AddHook(gcph, nil); err != nil {
 		logger.StandardLogger(logging.Alert).Println(err)
-		panic(err)
+		return
 	}
 
 	// Create a TCP listener on a standard port.
