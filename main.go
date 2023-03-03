@@ -11,8 +11,10 @@ import (
 	"cloud.google.com/go/logging"
 
 	mch "github.com/dgduncan/mochi-cloud-hooks"
+	zlg "github.com/mark-ignacio/zerolog-gcp"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/listeners"
+	"github.com/rs/zerolog"
 	"github.com/upperz-llc/go-broker/internal/hooks"
 	"github.com/upperz-llc/go-broker/internal/webserver"
 )
@@ -33,9 +35,15 @@ func main() {
 
 	// ****************** CONFIGURE LOGGING ************
 
-	// Creates a client.
+	// pull project id from env
+	pid, found := os.LookupEnv("GCP_PROJECT_ID")
+	if !found {
+		log.Fatal("GCP_PROJECT_ID not found")
+	}
+
+	// Creates gcp cloud logger client.
 	// TODO : use env variable to use project ID
-	client, err := logging.NewClient(ctx, "freezer-monitor-dev-e7d4c")
+	client, err := logging.NewClient(ctx, pid)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
@@ -45,6 +53,16 @@ func main() {
 	logName := "mochi-broker"
 
 	logger := client.Logger(logName)
+
+	// Create GCP Zap Logger
+
+	gcpWriter, err := zlg.NewCloudLoggingWriter(ctx, pid, "mochi-broker", zlg.CloudLoggingOptions{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gcpZeroLogger := zerolog.New(gcpWriter)
+	server.Log = &gcpZeroLogger
 
 	// ****************** CONFIGURE SSL ****************
 	certFile, err := os.ReadFile("etc/letsencrypt/live/testbroker.dev.upperz.org/cert.pem")

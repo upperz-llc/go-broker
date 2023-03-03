@@ -11,6 +11,7 @@ require (
 	github.com/dgduncan/mochi-cloud-hooks v0.0.3
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/golang/mock v1.6.0
+	github.com/mark-ignacio/zerolog-gcp v0.5.0
 	github.com/mochi-co/mqtt/v2 v2.2.5
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/stretchr/testify v1.8.2
@@ -28,7 +29,7 @@ require (
 	github.com/MicahParks/keyfunc v1.5.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
-	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
+	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/uuid v1.3.0 // indirect
