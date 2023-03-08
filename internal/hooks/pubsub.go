@@ -185,6 +185,13 @@ func (h *GCPPubsubHook) OnDisconnect(cl *mqtt.Client, connect_err error, expire 
 	if cl.ID == "admin" {
 		return
 	}
+
+	// CHECK ADMIN
+	if string(cl.Properties.Username) == h.admin.GetAdminCredentials() {
+		return
+	}
+	// ****************************
+
 	err := h.Pubsub.Publish(h.connectTopic, internalpkg.MochiConnectMessage{
 		ClientID:  cl.ID,
 		Username:  string(cl.Properties.Username),
