@@ -139,7 +139,7 @@ func main() {
 		logger.StandardLogger(logging.Alert).Println(err)
 		return
 	}
-	if err = server.AddHook(bdh, *badgerConfig); err != nil {
+	if err = server.AddHook(bdh, badgerConfig); err != nil {
 		logger.StandardLogger(logging.Alert).Println(err)
 		return
 	}
