@@ -13,10 +13,8 @@ import (
 	mch "github.com/dgduncan/mochi-cloud-hooks"
 	zlg "github.com/mark-ignacio/zerolog-gcp"
 	"github.com/mochi-co/mqtt/v2"
-	"github.com/mochi-co/mqtt/v2/hooks/storage/badger"
 	"github.com/mochi-co/mqtt/v2/listeners"
 	"github.com/rs/zerolog"
-	"github.com/timshannon/badgerhold"
 	"github.com/upperz-llc/go-broker/internal/hooks"
 	"github.com/upperz-llc/go-broker/internal/webserver"
 )
@@ -106,7 +104,7 @@ func main() {
 	gcph := new(hooks.GCPPubsubHook)
 	gcph.Logger = logger
 
-	bdh := new(badger.Hook)
+	// bdh := new(badger.Hook)
 
 	// *************************************
 
@@ -122,10 +120,10 @@ func main() {
 		return
 	}
 
-	badgerConfig := &badger.Options{
-		Options: &badgerhold.DefaultOptions,
-		Path:    badgerPath,
-	}
+	// badgerConfig := &badger.Options{
+	// 	Options: &badgerhold.DefaultOptions,
+	// 	Path:    badgerPath,
+	// }
 
 	if err = server.AddHook(gcsmh, *gcphConfig); err != nil {
 		logger.StandardLogger(logging.Error).Println(err)
@@ -139,10 +137,10 @@ func main() {
 		logger.StandardLogger(logging.Alert).Println(err)
 		return
 	}
-	if err = server.AddHook(bdh, badgerConfig); err != nil {
-		logger.StandardLogger(logging.Alert).Println(err)
-		return
-	}
+	// if err = server.AddHook(bdh, badgerConfig); err != nil {
+	// 	logger.StandardLogger(logging.Alert).Println(err)
+	// 	return
+	// }
 
 	// Create a TCP listener on a standard port.
 	tcp := listeners.NewTCP("t1", ":1883", &listeners.Config{
