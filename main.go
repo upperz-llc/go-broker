@@ -13,6 +13,7 @@ import (
 	mch "github.com/dgduncan/mochi-cloud-hooks"
 	zlg "github.com/mark-ignacio/zerolog-gcp"
 	"github.com/mochi-co/mqtt/v2"
+	"github.com/mochi-co/mqtt/v2/hooks/storage/badger"
 	"github.com/mochi-co/mqtt/v2/listeners"
 	"github.com/rs/zerolog"
 	"github.com/upperz-llc/go-broker/internal/hooks"
@@ -21,6 +22,9 @@ import (
 
 func main() {
 	ctx := context.Background()
+
+	badgerPath := ".badger"
+	defer os.RemoveAll(badgerPath) // remove the example badger files at the end
 
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
@@ -101,6 +105,8 @@ func main() {
 	gcph := new(hooks.GCPPubsubHook)
 	gcph.Logger = logger
 
+	bdh := new(badger.Hook)
+
 	// *************************************
 
 	gcphConfig, err := hooks.NewMochiCloudHooksSecretManagerConfig(ctx)
@@ -115,6 +121,10 @@ func main() {
 		return
 	}
 
+	badgerConfig := &badger.Options{
+		Path: badgerPath,
+	}
+
 	if err = server.AddHook(gcsmh, *gcphConfig); err != nil {
 		logger.StandardLogger(logging.Error).Println(err)
 		return
@@ -124,6 +134,10 @@ func main() {
 		return
 	}
 	if err = server.AddHook(gcph, nil); err != nil {
+		logger.StandardLogger(logging.Alert).Println(err)
+		return
+	}
+	if err = server.AddHook(bdh, *badgerConfig); err != nil {
 		logger.StandardLogger(logging.Alert).Println(err)
 		return
 	}
