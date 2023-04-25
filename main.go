@@ -22,8 +22,8 @@ import (
 func main() {
 	ctx := context.Background()
 
-	badgerPath := ".badger"
-	defer os.RemoveAll(badgerPath) // remove the example badger files at the end
+	// badgerPath := ".badger"
+	// defer os.RemoveAll(badgerPath) // remove the example badger files at the end
 
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
