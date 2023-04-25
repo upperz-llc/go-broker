@@ -22,9 +22,6 @@ import (
 func main() {
 	ctx := context.Background()
 
-	// badgerPath := ".badger"
-	// defer os.RemoveAll(badgerPath) // remove the example badger files at the end
-
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -45,7 +42,6 @@ func main() {
 	}
 
 	// Creates gcp cloud logger client.
-	// TODO : use env variable to use project ID
 	client, err := logging.NewClient(ctx, pid)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
@@ -58,7 +54,6 @@ func main() {
 	logger := client.Logger(logName)
 
 	// Create GCP Zap Logger
-
 	gcpWriter, err := zlg.NewCloudLoggingWriter(ctx, pid, "mochi-broker", zlg.CloudLoggingOptions{})
 	if err != nil {
 		log.Fatal(err)
@@ -93,19 +88,9 @@ func main() {
 	// *************************************************
 
 	// CONFIGS
-	// TODO : Look into if this is the right way
-	// fsh := new(hooks.FirestoreAuthHook)
-	// fsh.Logger = logger
-
 	ah := new(mch.HTTPAuthHook)
-
 	gcsmh := new(mch.SecretManagerAuthHook)
-
-	gcph := new(hooks.GCPPubsubHook)
-	gcph.Logger = logger
-
-	// bdh := new(badger.Hook)
-
+	gcph := new(mch.PubsubMessagingHook)
 	// *************************************
 
 	gcphConfig, err := hooks.NewMochiCloudHooksSecretManagerConfig(ctx)
@@ -120,10 +105,11 @@ func main() {
 		return
 	}
 
-	// badgerConfig := &badger.Options{
-	// 	Options: &badgerhold.DefaultOptions,
-	// 	Path:    badgerPath,
-	// }
+	pshConfig, err := hooks.NewMochiCloudHooksPubSubConfig(ctx)
+	if err != nil {
+		logger.StandardLogger(logging.Error).Println(err)
+		return
+	}
 
 	if err = server.AddHook(gcsmh, *gcphConfig); err != nil {
 		logger.StandardLogger(logging.Error).Println(err)
@@ -133,14 +119,10 @@ func main() {
 		logger.StandardLogger(logging.Alert).Println(err)
 		return
 	}
-	if err = server.AddHook(gcph, nil); err != nil {
+	if err = server.AddHook(gcph, *pshConfig); err != nil {
 		logger.StandardLogger(logging.Alert).Println(err)
 		return
 	}
-	// if err = server.AddHook(bdh, badgerConfig); err != nil {
-	// 	logger.StandardLogger(logging.Alert).Println(err)
-	// 	return
-	// }
 
 	// Create a TCP listener on a standard port.
 	tcp := listeners.NewTCP("t1", ":1883", &listeners.Config{
