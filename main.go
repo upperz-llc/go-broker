@@ -16,6 +16,7 @@ import (
 	"github.com/mochi-co/mqtt/v2/hooks/storage/badger"
 	"github.com/mochi-co/mqtt/v2/listeners"
 	"github.com/rs/zerolog"
+	"github.com/timshannon/badgerhold"
 	"github.com/upperz-llc/go-broker/internal/hooks"
 	"github.com/upperz-llc/go-broker/internal/webserver"
 )
@@ -122,7 +123,8 @@ func main() {
 	}
 
 	badgerConfig := &badger.Options{
-		Path: badgerPath,
+		Options: &badgerhold.DefaultOptions,
+		Path:    badgerPath,
 	}
 
 	if err = server.AddHook(gcsmh, *gcphConfig); err != nil {
@@ -137,7 +139,7 @@ func main() {
 		logger.StandardLogger(logging.Alert).Println(err)
 		return
 	}
-	if err = server.AddHook(bdh, *badgerConfig); err != nil {
+	if err = server.AddHook(bdh, badgerConfig); err != nil {
 		logger.StandardLogger(logging.Alert).Println(err)
 		return
 	}
@@ -146,13 +148,6 @@ func main() {
 	tcp := listeners.NewTCP("t1", ":1883", &listeners.Config{
 		TLSConfig: tlsConfig,
 	})
-
-	// Create HTTP Stats Listener
-	// stats := listeners.NewHTTPStats("stats", ":8080", nil, server.Info)
-	// err = server.AddListener(stats)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
 
 	err = server.AddListener(tcp)
 	if err != nil {
