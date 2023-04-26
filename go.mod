@@ -8,7 +8,7 @@ require (
 	cloud.google.com/go/pubsub v1.30.0
 	cloud.google.com/go/secretmanager v1.10.0
 	firebase.google.com/go/v4 v4.11.0
-	github.com/dgduncan/mochi-cloud-hooks v0.0.5
+	github.com/dgduncan/mochi-cloud-hooks v0.0.6
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/golang/mock v1.6.0
 	github.com/mark-ignacio/zerolog-gcp v0.5.0
