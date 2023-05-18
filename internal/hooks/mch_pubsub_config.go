@@ -30,6 +30,10 @@ func NewMochiCloudHooksPubSubConfig(ctx context.Context) (*mch.PubsubMessagingHo
 	if !found {
 		return nil, errors.New("BROKER_HOOK_GCPPUBSUB_TOPIC_CONNECT not found")
 	}
+	oset, found := os.LookupEnv("BROKER_HOOK_GCPPUBSUB_TOPIC_ONSESSIONESTABLISHED")
+	if !found {
+		return nil, errors.New("BROKER_HOOK_GCPPUBSUB_TOPIC_CONNECT not found")
+	}
 	lwtt, found := os.LookupEnv("BROKER_HOOK_GCPPUBSUB_TOPIC_LWT")
 	if !found {
 		return nil, errors.New("BROKER_HOOK_GCPPUBSUB_TOPIC_LWT not found")
@@ -73,11 +77,18 @@ func NewMochiCloudHooksPubSubConfig(ctx context.Context) (*mch.PubsubMessagingHo
 		CountThreshold: 10,
 	}
 
+	onSessionEstablishedTopic := pc.Topic(oset)
+	onSessionEstablishedTopic.PublishSettings = pubsub.PublishSettings{
+		DelayThreshold: 1 * time.Second,
+		CountThreshold: 10,
+	}
+
 	return &mch.PubsubMessagingHookConfig{
-		ConnectTopic:   connecttopic,
-		PublishTopic:   pubslishtopic,
-		SubscribeTopic: subscribetopic,
-		WillTopic:      willtopic,
-		DisallowList:   disallowList,
+		ConnectTopic:              connecttopic,
+		OnSessionEstablishedTopic: onSessionEstablishedTopic,
+		PublishTopic:              pubslishtopic,
+		SubscribeTopic:            subscribetopic,
+		WillTopic:                 willtopic,
+		DisallowList:              disallowList,
 	}, nil
 }
