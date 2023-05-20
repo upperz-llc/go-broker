@@ -32,15 +32,11 @@ func NewMochiCloudHooksPubSubConfig(ctx context.Context) (*mch.PubsubMessagingHo
 	}
 	oset, found := os.LookupEnv("BROKER_HOOK_GCPPUBSUB_TOPIC_ONSESSIONESTABLISHED")
 	if !found {
-		return nil, errors.New("BROKER_HOOK_GCPPUBSUB_TOPIC_CONNECT not found")
+		return nil, errors.New("BROKER_HOOK_GCPPUBSUB_TOPIC_ONSESSIONESTABLISHED not found")
 	}
 	lwtt, found := os.LookupEnv("BROKER_HOOK_GCPPUBSUB_TOPIC_LWT")
 	if !found {
 		return nil, errors.New("BROKER_HOOK_GCPPUBSUB_TOPIC_LWT not found")
-	}
-	oset, found := os.LookupEnv("BROKER_HOOK_GCPPUBSUB_TOPIC_ONSESSIONESTABLISHED")
-	if !found {
-		return nil, errors.New("BROKER_HOOK_GCPPUBSUB_TOPIC_ONSESSIONESTABLISHED not found")
 	}
 
 	adminclient, err := admin.NewAdmin(ctx)
