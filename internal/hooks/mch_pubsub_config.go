@@ -38,6 +38,14 @@ func NewMochiCloudHooksPubSubConfig(ctx context.Context) (*mch.PubsubMessagingHo
 	if !found {
 		return nil, errors.New("BROKER_HOOK_GCPPUBSUB_TOPIC_LWT not found")
 	}
+	dt, found := os.LookupEnv("BROKER_HOOK_GCPPUBSUB_TOPIC_DISCONNECT")
+	if !found {
+		return nil, errors.New("BROKER_HOOK_GCPPUBSUB_TOPIC_DISCONNECT not found")
+	}
+	ust, found := os.LookupEnv("BROKER_HOOK_GCPPUBSUB_TOPIC_UNSUBSCRIBE")
+	if !found {
+		return nil, errors.New("BROKER_HOOK_GCPPUBSUB_TOPIC_UNSUBSCRIBE not found")
+	}
 
 	adminclient, err := admin.NewAdmin(ctx)
 	if err != nil {
@@ -64,9 +72,20 @@ func NewMochiCloudHooksPubSubConfig(ctx context.Context) (*mch.PubsubMessagingHo
 		DelayThreshold: 1 * time.Second,
 		CountThreshold: 10,
 	}
+	unsubscribetopic := pc.Topic(ust)
+	unsubscribetopic.PublishSettings = pubsub.PublishSettings{
+		DelayThreshold: 1 * time.Second,
+		CountThreshold: 10,
+	}
 
 	connecttopic := pc.Topic(ct)
 	connecttopic.PublishSettings = pubsub.PublishSettings{
+		DelayThreshold: 1 * time.Second,
+		CountThreshold: 10,
+	}
+
+	disconnecttopic := pc.Topic(dt)
+	disconnecttopic.PublishSettings = pubsub.PublishSettings{
 		DelayThreshold: 1 * time.Second,
 		CountThreshold: 10,
 	}
@@ -84,11 +103,13 @@ func NewMochiCloudHooksPubSubConfig(ctx context.Context) (*mch.PubsubMessagingHo
 	}
 
 	return &mch.PubsubMessagingHookConfig{
-		ConnectTopic:              connecttopic,
+		OnConnectTopic:            connecttopic,
+		OnDisconnectTopic:         disconnecttopic,
 		OnSessionEstablishedTopic: onSessionEstablishedTopic,
-		PublishTopic:              pubslishtopic,
-		SubscribeTopic:            subscribetopic,
-		WillTopic:                 willtopic,
+		OnPublishedTopic:          pubslishtopic,
+		OnStartedTopic:            subscribetopic,
+		OnUnubscribedTopic:        unsubscribetopic,
+		OnWillSentTopic:           willtopic,
 		DisallowList:              disallowList,
 	}, nil
 }
