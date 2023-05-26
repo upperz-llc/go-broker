@@ -8,8 +8,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"cloud.google.com/go/logging"
-
 	mch "github.com/dgduncan/mochi-cloud-hooks"
 	zlg "github.com/mark-ignacio/zerolog-gcp"
 	"github.com/mochi-co/mqtt/v2"
@@ -32,6 +30,8 @@ func main() {
 
 	// Create the new MQTT Server.
 	server := mqtt.New(&mqtt.Options{})
+	// l := server.Log.Level(zerolog.DebugLevel)
+	// server.Log = &l
 
 	// ****************** CONFIGURE LOGGING ************
 
@@ -42,16 +42,16 @@ func main() {
 	}
 
 	// Creates gcp cloud logger client.
-	client, err := logging.NewClient(ctx, pid)
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
-	}
-	defer client.Close()
+	// client, err := logging.NewClient(ctx, pid)
+	// if err != nil {
+	// 	log.Fatalf("Failed to create client: %v", err)
+	// }
+	// defer client.Close()
 
 	// Sets the name of the log to write to.
-	logName := "mochi-broker"
+	// logName := "mochi-broker"
 
-	logger := client.Logger(logName)
+	// logger := client.Logger(logName)
 
 	// Create GCP Zap Logger
 	gcpWriter, err := zlg.NewCloudLoggingWriter(ctx, pid, "mochi-broker", zlg.CloudLoggingOptions{})
@@ -60,25 +60,27 @@ func main() {
 	}
 
 	gcpZeroLogger := zerolog.New(gcpWriter)
-	server.Log = &gcpZeroLogger
+	debugLogger := gcpZeroLogger.Level(zerolog.DebugLevel)
+	server.Log = &debugLogger
 
 	// ****************** CONFIGURE SSL ****************
 	certFile, err := os.ReadFile("etc/letsencrypt/live/testbroker.dev.upperz.org/cert.pem")
 	if err != nil {
-		logger.StandardLogger(logging.Error).Println(err)
+		server.Log.Err(err).Msg("")
 		return
 	}
 
 	privateKey, err := os.ReadFile("etc/letsencrypt/live/testbroker.dev.upperz.org/privkey.pem")
 	if err != nil {
-		logger.StandardLogger(logging.Error).Println(err)
+		server.Log.Err(err).Msg("")
 		return
 	}
 
 	// TLS/SSL
 	cert, err := tls.X509KeyPair(certFile, privateKey)
 	if err != nil {
-		log.Fatal(err)
+		server.Log.Err(err).Msg("")
+		return
 	}
 
 	// Basic TLS Config
@@ -95,32 +97,32 @@ func main() {
 
 	gcphConfig, err := hooks.NewMochiCloudHooksSecretManagerConfig(ctx)
 	if err != nil {
-		logger.StandardLogger(logging.Error).Println(err)
+		server.Log.Err(err).Msg("")
 		return
 	}
 
 	httpauthconfig, err := hooks.NewMochiCloudHooksHTTPAuthConfig(ctx)
 	if err != nil {
-		logger.StandardLogger(logging.Error).Println(err)
+		server.Log.Err(err).Msg("")
 		return
 	}
 
 	pshConfig, err := hooks.NewMochiCloudHooksPubSubConfig(ctx)
 	if err != nil {
-		logger.StandardLogger(logging.Error).Println(err)
+		server.Log.Err(err).Msg("")
 		return
 	}
 
 	if err = server.AddHook(gcsmh, *gcphConfig); err != nil {
-		logger.StandardLogger(logging.Error).Println(err)
+		server.Log.Err(err).Msg("")
 		return
 	}
 	if err = server.AddHook(ah, *httpauthconfig); err != nil {
-		logger.StandardLogger(logging.Alert).Println(err)
+		server.Log.Err(err).Msg("")
 		return
 	}
 	if err = server.AddHook(gcph, *pshConfig); err != nil {
-		logger.StandardLogger(logging.Alert).Println(err)
+		server.Log.Err(err).Msg("")
 		return
 	}
 
@@ -131,13 +133,15 @@ func main() {
 
 	err = server.AddListener(tcp)
 	if err != nil {
-		log.Fatal(err)
+		server.Log.Err(err).Msg("")
+		return
 	}
 
 	go func() {
 		err := server.Serve()
 		if err != nil {
-			log.Fatal(err)
+			server.Log.Err(err).Msg("")
+			return
 		}
 	}()
 
