@@ -148,7 +148,16 @@ func main() {
 		TLSConfig: tlsConfig,
 	})
 
+	// Create a healthcheck listener
+	hc := listeners.NewHTTPHealthCheck("healthcheck", ":8080", nil)
+
 	err = server.AddListener(tcp)
+	if err != nil {
+		server.Log.Err(err).Msg("")
+		return
+	}
+
+	err = server.AddListener(hc)
 	if err != nil {
 		server.Log.Err(err).Msg("")
 		return
