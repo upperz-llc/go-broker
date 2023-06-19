@@ -11,6 +11,8 @@ import (
 	mch "github.com/dgduncan/mochi-cloud-hooks"
 	zlg "github.com/mark-ignacio/zerolog-gcp"
 	"github.com/mochi-co/mqtt/v2"
+	"github.com/mochi-co/mqtt/v2/hooks/debug"
+	"github.com/mochi-co/mqtt/v2/hooks/storage/redis"
 	"github.com/mochi-co/mqtt/v2/listeners"
 	"github.com/rs/zerolog"
 	"github.com/upperz-llc/go-broker/internal/hooks"
@@ -30,8 +32,8 @@ func main() {
 
 	// Create the new MQTT Server.
 	server := mqtt.New(&mqtt.Options{})
-	// l := server.Log.Level(zerolog.DebugLevel)
-	// server.Log = &l
+	l := server.Log.Level(zerolog.DebugLevel)
+	server.Log = &l
 
 	// ****************** CONFIGURE LOGGING ************
 
@@ -95,6 +97,12 @@ func main() {
 	gcph := new(mch.PubsubMessagingHook)
 	// *************************************
 
+	redisConfig, err := hooks.NewRedisPersistanceHookConfig(ctx)
+	if err != nil {
+		server.Log.Err(err).Msg("")
+		return
+	}
+
 	gcphConfig, err := hooks.NewMochiCloudHooksSecretManagerConfig(ctx)
 	if err != nil {
 		server.Log.Err(err).Msg("")
@@ -113,6 +121,15 @@ func main() {
 		return
 	}
 
+	if err := server.AddHook(new(debug.Hook), &debug.Options{
+		// ShowPacketData: true,
+	}); err != nil {
+		server.Log.Err(err).Msg("")
+		return
+	}
+	if err = server.AddHook(new(redis.Hook), redisConfig); err != nil {
+		log.Fatal(err)
+	}
 	if err = server.AddHook(gcsmh, *gcphConfig); err != nil {
 		server.Log.Err(err).Msg("")
 		return
