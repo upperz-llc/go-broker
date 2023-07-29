@@ -43,18 +43,6 @@ func main() {
 		log.Fatal("GCP_PROJECT_ID not found")
 	}
 
-	// Creates gcp cloud logger client.
-	// client, err := logging.NewClient(ctx, pid)
-	// if err != nil {
-	// 	log.Fatalf("Failed to create client: %v", err)
-	// }
-	// defer client.Close()
-
-	// Sets the name of the log to write to.
-	// logName := "mochi-broker"
-
-	// logger := client.Logger(logName)
-
 	// Create GCP Zap Logger
 	gcpWriter, err := zlg.NewCloudLoggingWriter(ctx, pid, "mochi-broker", zlg.CloudLoggingOptions{})
 	if err != nil {
