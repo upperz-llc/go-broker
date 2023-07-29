@@ -1,13 +1,10 @@
 package main
 
 import (
-	"context"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
-	zlg "github.com/mark-ignacio/zerolog-gcp"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/hooks/auth"
 	"github.com/mochi-co/mqtt/v2/hooks/debug"
@@ -17,7 +14,7 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
+	// ctx := context.Background()
 
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
@@ -35,20 +32,20 @@ func main() {
 	// ****************** CONFIGURE LOGGING ************
 
 	// pull project id from env
-	pid, found := os.LookupEnv("GCP_PROJECT_ID")
-	if !found {
-		log.Fatal("GCP_PROJECT_ID not found")
-	}
+	// pid, found := os.LookupEnv("GCP_PROJECT_ID")
+	// if !found {
+	// 	log.Fatal("GCP_PROJECT_ID not found")
+	// }
 
 	// Create GCP Zap Logger
-	gcpWriter, err := zlg.NewCloudLoggingWriter(ctx, pid, "mochi-broker", zlg.CloudLoggingOptions{})
-	if err != nil {
-		log.Fatal(err)
-	}
+	// gcpWriter, err := zlg.NewCloudLoggingWriter(ctx, pid, "mochi-broker", zlg.CloudLoggingOptions{})
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	gcpZeroLogger := zerolog.New(gcpWriter)
-	debugLogger := gcpZeroLogger.Level(zerolog.DebugLevel)
-	server.Log = &debugLogger
+	// gcpZeroLogger := zerolog.New(gcpWriter)
+	// debugLogger := gcpZeroLogger.Level(zerolog.DebugLevel)
+	// server.Log = &debugLogger
 
 	_ = server.AddHook(new(debug.Hook), &debug.Options{})
 	_ = server.AddHook(new(auth.AllowHook), nil)
@@ -59,7 +56,7 @@ func main() {
 	// Create a healthcheck listener
 	hc := listeners.NewHTTPHealthCheck("healthcheck", ":8080", nil)
 
-	err = server.AddListener(tcp)
+	err := server.AddListener(tcp)
 	if err != nil {
 		server.Log.Err(err).Msg("")
 		return
