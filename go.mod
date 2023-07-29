@@ -1,6 +1,6 @@
 module github.com/upperz-llc/go-broker
 
-go 1.19
+go 1.20
 
 require (
 	cloud.google.com/go/firestore v1.10.0
@@ -13,7 +13,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang/mock v1.6.0
 	github.com/mark-ignacio/zerolog-gcp v0.5.0
-	github.com/mochi-co/mqtt/v2 v2.2.14
+	github.com/mochi-co/mqtt/v2 v2.2.16
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/rs/zerolog v1.29.1
 	github.com/stretchr/testify v1.8.4
