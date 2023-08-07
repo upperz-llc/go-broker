@@ -21,9 +21,9 @@ func NewMochiCloudHooksHTTPAuthConfig(ctx context.Context) (*mch.HTTPAuthHookCon
 	}
 
 	return &mch.HTTPAuthHookConfig{
-		ACLHost:                  endpoint + "/api/v1/acls",
+		ACLHost:                  endpoint + "/api/v1/auth/acls",
 		SuperUserHost:            endpoint + "/api/v1/clients/superuser",
-		ClientAuthenticationHost: endpoint + "/api/v1/clients",
+		ClientAuthenticationHost: endpoint + "/api/v1/auth/clients",
 		RoundTripper:             client.Transport,
 	}, nil
 }
