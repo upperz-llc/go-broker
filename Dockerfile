@@ -17,14 +17,14 @@ FROM alpine
 
 RUN apk update
 RUN apk upgrade
-RUN apk add bash
-RUN apk add certbot
+# RUN apk add bash
+# RUN apk add certbot
 
 WORKDIR /
 COPY --from=builder /app/mochi .
-COPY run.sh /run.sh
-COPY certbot.sh /certbot.sh
-COPY croncert.sh /etc/periodic/weekly/croncert.sh
+# COPY run.sh /run.sh
+# COPY certbot.sh /certbot.sh
+# COPY croncert.sh /etc/periodic/weekly/croncert.sh
 
 RUN chmod +x /run.sh
 RUN chmod +x /certbot.sh

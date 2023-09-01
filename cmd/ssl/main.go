@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,6 +19,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/upperz-llc/go-broker/internal/hooks"
 	"github.com/upperz-llc/go-broker/internal/webserver"
+	"golang.org/x/crypto/acme"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 func main() {
@@ -66,30 +70,65 @@ func main() {
 	server.Log = &debugLogger
 
 	// ****************** CONFIGURE SSL ****************
-	certFile, err := os.ReadFile("etc/letsencrypt/live/testbroker.dev.upperz.org/cert.pem")
-	if err != nil {
-		server.Log.Err(err).Msg("")
-		return
+	// certFile, err := os.ReadFile("etc/letsencrypt/live/testbroker.dev.upperz.org/cert.pem")
+	// if err != nil {
+	// 	server.Log.Err(err).Msg("")
+	// 	return
+	// }
+
+	// privateKey, err := os.ReadFile("etc/letsencrypt/live/testbroker.dev.upperz.org/privkey.pem")
+	// if err != nil {
+	// 	server.Log.Err(err).Msg("")
+	// 	return
+	// }
+
+	// // TLS/SSL
+	// cert, err := tls.X509KeyPair(certFile, privateKey)
+	// if err != nil {
+	// 	server.Log.Err(err).Msg("")
+	// 	return
+	// }
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Strict-Transport-Security", "max-age=15768000 ; includeSubDomains")
+		fmt.Fprintf(w, "Hello, HTTPS world!")
+	})
+
+	// create the autocert.Manager with domains and path to the cache
+	certManager := autocert.Manager{
+		Client: &acme.Client{
+			DirectoryURL: "https://acme-staging-v02.api.letsencrypt.org/directory",
+		},
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: autocert.HostWhitelist("autocert.dev.upperz.org"),
 	}
 
-	privateKey, err := os.ReadFile("etc/letsencrypt/live/testbroker.dev.upperz.org/privkey.pem")
-	if err != nil {
-		server.Log.Err(err).Msg("")
-		return
+	autocertserver := &http.Server{
+		Addr: ":https",
+		TLSConfig: &tls.Config{
+			GetCertificate: certManager.GetCertificate,
+		},
 	}
 
-	// TLS/SSL
-	cert, err := tls.X509KeyPair(certFile, privateKey)
-	if err != nil {
-		server.Log.Err(err).Msg("")
-		return
-	}
+	log.Printf("Serving http/https for domains: %s", "autocert.dev.upperz.org")
+	go func() {
+		// serve HTTP, which will redirect automatically to HTTPS
+		h := certManager.HTTPHandler(nil)
+		log.Fatal(http.ListenAndServe(":http", h))
+	}()
+
+	// serve HTTPS!
+	go func() {
+		fmt.Println(autocertserver.Addr)
+		log.Fatal(autocertserver.ListenAndServeTLS("", ""))
+	}()
+
+	// *************************************************
 
 	// Basic TLS Config
 	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{cert},
+		GetCertificate: certManager.GetCertificate,
 	}
-	// *************************************************
 
 	// CONFIGS
 	ah := new(mch.HTTPAuthHook)
