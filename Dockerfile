@@ -26,22 +26,25 @@ COPY --from=builder /app/mochi .
 # COPY certbot.sh /certbot.sh
 # COPY croncert.sh /etc/periodic/weekly/croncert.sh
 
-RUN chmod +x /run.sh
-RUN chmod +x /certbot.sh
-RUN chmod +x /etc/periodic/weekly/croncert.sh
 
-EXPOSE 80
 
-# tcp
-EXPOSE 1883
+# RUN chmod +x /run.sh
+# RUN chmod +x /certbot.sh
+# RUN chmod +x /etc/periodic/weekly/croncert.sh
 
-# websockets
-EXPOSE 1882
+# EXPOSE 80
 
-# dashboard
-EXPOSE 8080
+# # tcp
+# EXPOSE 1883
 
-# api
-EXPOSE 8081
+# # websockets
+# EXPOSE 1882
 
-CMD ["/bin/bash","-c","/run.sh"]
+# # dashboard
+# EXPOSE 8080
+
+# # api
+# EXPOSE 8081
+
+# CMD ["/bin/bash","-c","/run.sh"]
+ENTRYPOINT [ "/mochi" ]

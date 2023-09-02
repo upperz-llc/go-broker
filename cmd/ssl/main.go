@@ -11,7 +11,6 @@ import (
 	"syscall"
 
 	mch "github.com/dgduncan/mochi-cloud-hooks"
-	zlg "github.com/mark-ignacio/zerolog-gcp"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/hooks/debug"
 	"github.com/mochi-co/mqtt/v2/hooks/storage/redis"
@@ -42,10 +41,10 @@ func main() {
 	// ****************** CONFIGURE LOGGING ************
 
 	// pull project id from env
-	pid, found := os.LookupEnv("GCP_PROJECT_ID")
-	if !found {
-		log.Fatal("GCP_PROJECT_ID not found")
-	}
+	// pid, found := os.LookupEnv("GCP_PROJECT_ID")
+	// if !found {
+	// 	log.Fatal("GCP_PROJECT_ID not found")
+	// }
 
 	// Creates gcp cloud logger client.
 	// client, err := logging.NewClient(ctx, pid)
@@ -60,14 +59,14 @@ func main() {
 	// logger := client.Logger(logName)
 
 	// Create GCP Zap Logger
-	gcpWriter, err := zlg.NewCloudLoggingWriter(ctx, pid, "mochi-broker", zlg.CloudLoggingOptions{})
-	if err != nil {
-		log.Fatal(err)
-	}
+	// gcpWriter, err := zlg.NewCloudLoggingWriter(ctx, pid, "mochi-broker", zlg.CloudLoggingOptions{})
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	gcpZeroLogger := zerolog.New(gcpWriter)
-	debugLogger := gcpZeroLogger.Level(zerolog.DebugLevel)
-	server.Log = &debugLogger
+	// gcpZeroLogger := zerolog.New(gcpWriter)
+	// debugLogger := gcpZeroLogger.Level(zerolog.DebugLevel)
+	// server.Log = &debugLogger
 
 	// ****************** CONFIGURE SSL ****************
 	// certFile, err := os.ReadFile("etc/letsencrypt/live/testbroker.dev.upperz.org/cert.pem")
@@ -100,7 +99,7 @@ func main() {
 			DirectoryURL: "https://acme-staging-v02.api.letsencrypt.org/directory",
 		},
 		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist("autocert.dev.upperz.org"),
+		HostPolicy: autocert.HostWhitelist("broker.dev.upperz.org"),
 	}
 
 	autocertserver := &http.Server{
@@ -110,7 +109,7 @@ func main() {
 		},
 	}
 
-	log.Printf("Serving http/https for domains: %s", "autocert.dev.upperz.org")
+	log.Printf("Serving http/https for domains: %s", "broker.dev.upperz.org")
 	go func() {
 		// serve HTTP, which will redirect automatically to HTTPS
 		h := certManager.HTTPHandler(nil)
