@@ -99,7 +99,7 @@ func main() {
 			DirectoryURL: "https://acme-staging-v02.api.letsencrypt.org/directory",
 		},
 		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist("broker.dev.upperz.org"),
+		HostPolicy: autocert.HostWhitelist("testbroker.dev.upperz.org"),
 	}
 
 	autocertserver := &http.Server{
@@ -109,7 +109,7 @@ func main() {
 		},
 	}
 
-	log.Printf("Serving http/https for domains: %s", "broker.dev.upperz.org")
+	log.Printf("Serving http/https for domains: %s", "testbroker.dev.upperz.org")
 	go func() {
 		// serve HTTP, which will redirect automatically to HTTPS
 		h := certManager.HTTPHandler(nil)
