@@ -93,9 +93,9 @@ func main() {
 		fmt.Fprintf(w, "Hello, HTTPS world!")
 	})
 
-	leurl := autocert.DefaultACMEDirectory
-	if os.Getenv("LISTENERS_LETSENCRYPT_STAGING") == "" {
-		leurl = "https://acme-staging-v02.api.letsencrypt.org/directory"
+	leurl := "https://acme-staging-v02.api.letsencrypt.org/directory"
+	if os.Getenv("LISTENERS_LETSENCRYPT_PRODUCTION") == "true" {
+		leurl = autocert.DefaultACMEDirectory
 	}
 
 	// create the autocert.Manager with domains and path to the cache
