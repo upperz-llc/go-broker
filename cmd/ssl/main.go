@@ -93,13 +93,18 @@ func main() {
 		fmt.Fprintf(w, "Hello, HTTPS world!")
 	})
 
+	leurl := autocert.DefaultACMEDirectory
+	if os.Getenv("LISTENERS_LETSENCRYPT_STAGING") == "" {
+		leurl = "https://acme-staging-v02.api.letsencrypt.org/directory"
+	}
+
 	// create the autocert.Manager with domains and path to the cache
 	certManager := autocert.Manager{
 		Client: &acme.Client{
-			DirectoryURL: "https://acme-staging-v02.api.letsencrypt.org/directory",
+			DirectoryURL: leurl,
 		},
 		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist("testbroker.dev.upperz.org"),
+		HostPolicy: autocert.HostWhitelist(os.Getenv("LISTENERS_LETSENCRYPT_HOST")),
 	}
 
 	autocertserver := &http.Server{
@@ -109,7 +114,7 @@ func main() {
 		},
 	}
 
-	log.Printf("Serving http/https for domains: %s", "testbroker.dev.upperz.org")
+	log.Printf("Serving http/https for domains: %s", os.Getenv("LISTENERS_LETSENCRYPT_HOST"))
 	go func() {
 		// serve HTTP, which will redirect automatically to HTTPS
 		h := certManager.HTTPHandler(nil)
@@ -118,7 +123,6 @@ func main() {
 
 	// serve HTTPS!
 	go func() {
-		fmt.Println(autocertserver.Addr)
 		log.Fatal(autocertserver.ListenAndServeTLS("", ""))
 	}()
 
