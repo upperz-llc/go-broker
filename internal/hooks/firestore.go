@@ -8,8 +8,9 @@ import (
 	"time"
 
 	"cloud.google.com/go/logging"
-	"github.com/mochi-co/mqtt/v2"
-	"github.com/mochi-co/mqtt/v2/packets"
+
+	mqtt "github.com/mochi-mqtt/server/v2"
+	"github.com/mochi-mqtt/server/v2/packets"
 	"github.com/patrickmn/go-cache"
 	"github.com/upperz-llc/go-broker/internal/firestore"
 

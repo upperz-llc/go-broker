@@ -7,7 +7,7 @@ import (
 
 	rv8 "github.com/go-redis/redis/v8"
 
-	"github.com/mochi-co/mqtt/v2/hooks/storage/redis"
+	"github.com/mochi-mqtt/server/v2/hooks/storage/redis"
 )
 
 func NewRedisPersistanceHookConfig(ctx context.Context) (*redis.Options, error) {

@@ -7,8 +7,9 @@ import (
 	"strconv"
 
 	"cloud.google.com/go/logging"
-	"github.com/mochi-co/mqtt/v2"
-	"github.com/mochi-co/mqtt/v2/packets"
+
+	mqtt "github.com/mochi-mqtt/server/v2"
+	"github.com/mochi-mqtt/server/v2/packets"
 	"github.com/upperz-llc/go-broker/internal/admin"
 	"github.com/upperz-llc/go-broker/internal/httpauth"
 )

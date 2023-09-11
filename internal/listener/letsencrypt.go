@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mochi-co/mqtt/v2/listeners"
+	"github.com/mochi-mqtt/server/v2/listeners"
 	"github.com/rs/zerolog"
 )
 

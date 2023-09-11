@@ -1,6 +1,8 @@
 module github.com/upperz-llc/go-broker
 
-go 1.20
+go 1.21
+
+toolchain go1.21.0
 
 require (
 	cloud.google.com/go/firestore v1.10.0
@@ -12,8 +14,7 @@ require (
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang/mock v1.6.0
-	github.com/mark-ignacio/zerolog-gcp v0.5.0
-	github.com/mochi-co/mqtt/v2 v2.2.16
+	github.com/mochi-mqtt/server/v2 v2.4.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/rs/zerolog v1.29.1
 	github.com/stretchr/testify v1.8.4
@@ -45,6 +46,7 @@ require (
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/mochi-co/mqtt/v2 v2.2.14 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rs/xid v1.4.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
