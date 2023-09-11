@@ -2,8 +2,6 @@ module github.com/upperz-llc/go-broker
 
 go 1.21
 
-toolchain go1.21.0
-
 require (
 	cloud.google.com/go/firestore v1.10.0
 	cloud.google.com/go/logging v1.7.0
