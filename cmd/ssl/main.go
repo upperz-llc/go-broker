@@ -13,6 +13,7 @@ import (
 	mch "github.com/dgduncan/mochi-cloud-hooks"
 	mqtt "github.com/mochi-mqtt/server/v2"
 
+	"github.com/mochi-mqtt/server/v2/hooks/auth"
 	"github.com/mochi-mqtt/server/v2/hooks/debug"
 	"github.com/mochi-mqtt/server/v2/listeners"
 	"github.com/upperz-llc/go-broker/internal/hooks"
@@ -131,6 +132,8 @@ func main() {
 			server.Log.Error("", err)
 			return
 		}
+	} else {
+		server.AddHook(new(auth.AllowHook), nil)
 	}
 
 	if os.Getenv("FLAGS_SECRET_MANAGER_ENABLED") == "true" {
