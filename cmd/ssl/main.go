@@ -57,7 +57,7 @@ func main() {
 	// 	return
 	// }
 
-	tlsConfig := new(tls.Config)
+	var tlsConfig *tls.Config
 	if os.Getenv("FLAG_SSL_ENABLED") == "true" {
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Strict-Transport-Security", "max-age=15768000 ; includeSubDomains")
@@ -160,6 +160,7 @@ func main() {
 	}
 
 	// Create a TCP listener on a standard port.
+
 	tcp := listeners.NewTCP("t1", ":1883", &listeners.Config{
 		TLSConfig: tlsConfig,
 	})
