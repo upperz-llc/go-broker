@@ -1,4 +1,4 @@
-FROM golang:1.19.0-alpine3.15 AS builder
+FROM golang:1.21.0-alpine3.18 AS builder
 
 RUN apk update
 RUN apk upgrade
@@ -17,31 +17,34 @@ FROM alpine
 
 RUN apk update
 RUN apk upgrade
-RUN apk add bash
-RUN apk add certbot
+# RUN apk add bash
+# RUN apk add certbot
 
 WORKDIR /
 COPY --from=builder /app/mochi .
-COPY run.sh /run.sh
-COPY certbot.sh /certbot.sh
-COPY croncert.sh /etc/periodic/weekly/croncert.sh
+# COPY run.sh /run.sh
+# COPY certbot.sh /certbot.sh
+# COPY croncert.sh /etc/periodic/weekly/croncert.sh
 
-RUN chmod +x /run.sh
-RUN chmod +x /certbot.sh
-RUN chmod +x /etc/periodic/weekly/croncert.sh
 
-EXPOSE 80
 
-# tcp
-EXPOSE 1883
+# RUN chmod +x /run.sh
+# RUN chmod +x /certbot.sh
+# RUN chmod +x /etc/periodic/weekly/croncert.sh
 
-# websockets
-EXPOSE 1882
+# EXPOSE 80
 
-# dashboard
-EXPOSE 8080
+# # tcp
+# EXPOSE 1883
 
-# api
-EXPOSE 8081
+# # websockets
+# EXPOSE 1882
 
-CMD ["/bin/bash","-c","/run.sh"]
+# # dashboard
+# EXPOSE 8080
+
+# # api
+# EXPOSE 8081
+
+# CMD ["/bin/bash","-c","/run.sh"]
+ENTRYPOINT [ "/mochi" ]

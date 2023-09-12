@@ -3,16 +3,16 @@ steps:
   args: [ 'build', '-t', '${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest', '-f', 'Dockerfile', '.' ]
 - name: 'gcr.io/cloud-builders/docker'
   args: [ 'push', '${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest']
-- name: 'gcr.io/cloud-builders/docker'
-  args: [ 'build', '-t', '${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest-nossl', '-f', 'Dockerfile.nossl', '.' ]
-- name: 'gcr.io/cloud-builders/docker'
-  args: [ 'push', '${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest-nossl']
-- name: 'gcr.io/cloud-builders/docker'
-  args: [ 'build', '-t', '${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest-loadtesting', '-f', 'Dockerfile.loadtesting', '.' ]
-- name: 'gcr.io/cloud-builders/docker'
-  args: [ 'push', '${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest-loadtesting']
+# - name: 'gcr.io/cloud-builders/docker'
+#   args: [ 'build', '-t', '${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest-nossl', '-f', 'Dockerfile.nossl', '.' ]
+# - name: 'gcr.io/cloud-builders/docker'
+#   args: [ 'push', '${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest-nossl']
+# - name: 'gcr.io/cloud-builders/docker'
+#   args: [ 'build', '-t', '${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest-loadtesting', '-f', 'Dockerfile.loadtesting', '.' ]
+# - name: 'gcr.io/cloud-builders/docker'
+#   args: [ 'push', '${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest-loadtesting']
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: 'gcloud'
-  args: [ 'compute', 'instances', 'update-container', 'mochi-broker', '--zone', 'us-central1-a', '--container-image=${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest' ]
+  args: [ 'compute', 'instances', 'update-container', 'broker', '--zone', 'us-central1-a', '--container-image=${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest' ]
 # images:
 # - '${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest'
