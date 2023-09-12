@@ -14,7 +14,6 @@ import (
 	mqtt "github.com/mochi-mqtt/server/v2"
 
 	"github.com/mochi-mqtt/server/v2/hooks/debug"
-	"github.com/mochi-mqtt/server/v2/hooks/storage/redis"
 	"github.com/mochi-mqtt/server/v2/listeners"
 	"github.com/upperz-llc/go-broker/internal/hooks"
 	"github.com/upperz-llc/go-broker/internal/webserver"
@@ -109,12 +108,6 @@ func main() {
 	gcph := new(mch.PubsubMessagingHook)
 	// *************************************
 
-	redisConfig, err := hooks.NewRedisPersistanceHookConfig(ctx)
-	if err != nil {
-		server.Log.Error("", err)
-		return
-	}
-
 	gcphConfig, err := hooks.NewMochiCloudHooksSecretManagerConfig(ctx)
 	if err != nil {
 		server.Log.Error("", err)
@@ -138,9 +131,6 @@ func main() {
 	}); err != nil {
 		server.Log.Error("", err)
 		return
-	}
-	if err = server.AddHook(new(redis.Hook), redisConfig); err != nil {
-		log.Fatal(err)
 	}
 	if err = server.AddHook(gcsmh, *gcphConfig); err != nil {
 		server.Log.Error("", err)
