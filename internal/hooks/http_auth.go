@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"cloud.google.com/go/logging"
-
 	mqtt "github.com/mochi-mqtt/server/v2"
 	"github.com/mochi-mqtt/server/v2/packets"
 	"github.com/upperz-llc/go-broker/internal/admin"
@@ -17,7 +15,6 @@ import (
 type HTTPAuthHook struct {
 	admin      *admin.Admin
 	httpClient *httpauth.HTTPAuthBackendClient
-	Logger     *logging.Logger
 	mqtt.HookBase
 }
 
@@ -48,7 +45,7 @@ func (h *HTTPAuthHook) Init(config any) error {
 	h.httpClient = httpclient
 	h.admin = admin
 
-	h.Logger.StandardLogger(logging.Debug).Println("initialized http-auth-hook")
+	h.Log.Debug("initialized http-auth-hook")
 	return nil
 }
 
@@ -64,7 +61,7 @@ func (h *HTTPAuthHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet)
 	// Call HTTP auth backend
 	allowed, err := h.httpClient.CheckClientAuth(context.Background(), cl.ID, string(pk.Connect.Username), string(pk.Connect.Password))
 	if err != nil {
-		h.Logger.StandardLogger(logging.Error).Println(err)
+		h.Log.Error("", err)
 	}
 	// ****************************
 
@@ -81,7 +78,7 @@ func (h *HTTPAuthHook) OnACLCheck(cl *mqtt.Client, topic string, write bool) boo
 	// Call HTTP auth backend
 	allowed, err := h.httpClient.CheckClientACLs(context.Background(), cl.ID, string(cl.Properties.Username), topic, strconv.FormatBool(write))
 	if err != nil {
-		h.Logger.StandardLogger(logging.Error).Println(err)
+		h.Log.Error("", err)
 	}
 	// ****************************
 

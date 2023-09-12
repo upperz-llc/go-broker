@@ -4,13 +4,11 @@ import (
 	"context"
 	"encoding/json"
 
-	"cloud.google.com/go/logging"
 	"cloud.google.com/go/pubsub"
 )
 
 // BrokerPubSub palceholder
 type BrokerPubSub struct {
-	Logger logging.Logger
 }
 
 func (bps *BrokerPubSub) Publish(topic *pubsub.Topic, data interface{}) error {
