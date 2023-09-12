@@ -57,90 +57,104 @@ func main() {
 	// 	return
 	// }
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Strict-Transport-Security", "max-age=15768000 ; includeSubDomains")
-		fmt.Fprintf(w, "Hello, HTTPS world!")
-	})
+	tlsConfig := new(tls.Config)
+	if os.Getenv("FLAG_SSL_ENABLED") == "true" {
+		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Strict-Transport-Security", "max-age=15768000 ; includeSubDomains")
+			fmt.Fprintf(w, "Hello, HTTPS world!")
+		})
 
-	leurl := "https://acme-staging-v02.api.letsencrypt.org/directory"
-	if os.Getenv("LISTENERS_LETSENCRYPT_PRODUCTION") == "true" {
-		leurl = autocert.DefaultACMEDirectory
-	}
+		leurl := "https://acme-staging-v02.api.letsencrypt.org/directory"
+		if os.Getenv("LISTENERS_LETSENCRYPT_PRODUCTION") == "true" {
+			leurl = autocert.DefaultACMEDirectory
+		}
 
-	// create the autocert.Manager with domains and path to the cache
-	certManager := autocert.Manager{
-		Client: &acme.Client{
-			DirectoryURL: leurl,
-		},
-		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist(os.Getenv("LISTENERS_LETSENCRYPT_HOST")),
-	}
+		// create the autocert.Manager with domains and path to the cache
+		certManager := autocert.Manager{
+			Client: &acme.Client{
+				DirectoryURL: leurl,
+			},
+			Prompt:     autocert.AcceptTOS,
+			HostPolicy: autocert.HostWhitelist(os.Getenv("LISTENERS_LETSENCRYPT_HOST")),
+		}
 
-	autocertserver := &http.Server{
-		Addr: ":https",
-		TLSConfig: &tls.Config{
+		autocertserver := &http.Server{
+			Addr: ":https",
+			TLSConfig: &tls.Config{
+				GetCertificate: certManager.GetCertificate,
+			},
+		}
+
+		log.Printf("Serving http/https for domains: %s", os.Getenv("LISTENERS_LETSENCRYPT_HOST"))
+		go func() {
+			// serve HTTP, which will redirect automatically to HTTPS
+			h := certManager.HTTPHandler(nil)
+			log.Fatal(http.ListenAndServe(":http", h))
+		}()
+
+		// serve HTTPS!
+		go func() {
+			log.Fatal(autocertserver.ListenAndServeTLS("", ""))
+		}()
+
+		// Basic TLS Config
+		tlsConfig = &tls.Config{
 			GetCertificate: certManager.GetCertificate,
-		},
+		}
 	}
 
-	log.Printf("Serving http/https for domains: %s", os.Getenv("LISTENERS_LETSENCRYPT_HOST"))
-	go func() {
-		// serve HTTP, which will redirect automatically to HTTPS
-		h := certManager.HTTPHandler(nil)
-		log.Fatal(http.ListenAndServe(":http", h))
-	}()
+	if os.Getenv("FLAGS_PUBSUB_ENABLED") == "true" {
+		gcph := new(mch.PubsubMessagingHook)
 
-	// serve HTTPS!
-	go func() {
-		log.Fatal(autocertserver.ListenAndServeTLS("", ""))
-	}()
+		pshConfig, err := hooks.NewMochiCloudHooksPubSubConfig(ctx)
+		if err != nil {
+			server.Log.Error("", err)
+			return
+		}
 
-	// *************************************************
+		if err = server.AddHook(gcph, *pshConfig); err != nil {
+			server.Log.Error("", err)
+			return
+		}
+	}
 
-	// Basic TLS Config
-	tlsConfig := &tls.Config{
-		GetCertificate: certManager.GetCertificate,
+	if os.Getenv("FLAGS_HTTP_AUTH_ENABLED") == "true" {
+		ah := new(mch.HTTPAuthHook)
+
+		httpauthconfig, err := hooks.NewMochiCloudHooksHTTPAuthConfig(ctx)
+		if err != nil {
+			server.Log.Error("", err)
+			return
+		}
+
+		if err = server.AddHook(ah, *httpauthconfig); err != nil {
+			server.Log.Error("", err)
+			return
+		}
+	}
+
+	if os.Getenv("FLAGS_SECRET_MANAGER_ENABLED") == "true" {
+		gcsmh := new(mch.SecretManagerAuthHook)
+
+		gcphConfig, err := hooks.NewMochiCloudHooksSecretManagerConfig(ctx)
+		if err != nil {
+			server.Log.Error("", err)
+			return
+		}
+
+		if err = server.AddHook(gcsmh, *gcphConfig); err != nil {
+			server.Log.Error("", err)
+			return
+		}
+
 	}
 
 	// CONFIGS
-	ah := new(mch.HTTPAuthHook)
-	gcsmh := new(mch.SecretManagerAuthHook)
-	gcph := new(mch.PubsubMessagingHook)
 	// *************************************
-
-	gcphConfig, err := hooks.NewMochiCloudHooksSecretManagerConfig(ctx)
-	if err != nil {
-		server.Log.Error("", err)
-		return
-	}
-
-	httpauthconfig, err := hooks.NewMochiCloudHooksHTTPAuthConfig(ctx)
-	if err != nil {
-		server.Log.Error("", err)
-		return
-	}
-
-	pshConfig, err := hooks.NewMochiCloudHooksPubSubConfig(ctx)
-	if err != nil {
-		server.Log.Error("", err)
-		return
-	}
 
 	if err := server.AddHook(new(debug.Hook), &debug.Options{
 		// ShowPacketData: true,
 	}); err != nil {
-		server.Log.Error("", err)
-		return
-	}
-	if err = server.AddHook(gcsmh, *gcphConfig); err != nil {
-		server.Log.Error("", err)
-		return
-	}
-	if err = server.AddHook(ah, *httpauthconfig); err != nil {
-		server.Log.Error("", err)
-		return
-	}
-	if err = server.AddHook(gcph, *pshConfig); err != nil {
 		server.Log.Error("", err)
 		return
 	}
@@ -153,13 +167,21 @@ func main() {
 	// Create a healthcheck listener
 	hc := listeners.NewHTTPHealthCheck("healthcheck", ":8080", nil)
 
-	err = server.AddListener(tcp)
+	hs := listeners.NewHTTPStats("stats", ":8081", nil, server.Info)
+
+	err := server.AddListener(tcp)
 	if err != nil {
 		server.Log.Error("", err)
 		return
 	}
 
 	err = server.AddListener(hc)
+	if err != nil {
+		server.Log.Error("", err)
+		return
+	}
+
+	err = server.AddListener(hs)
 	if err != nil {
 		server.Log.Error("", err)
 		return
