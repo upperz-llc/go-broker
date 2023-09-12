@@ -2,13 +2,13 @@ package listener
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/mochi-mqtt/server/v2/listeners"
-	"github.com/rs/zerolog"
 )
 
 // LetsEncrypt is a listener for providing an HTTP healthcheck endpoint.
@@ -18,7 +18,7 @@ type LetsEncrypt struct {
 	address string            // the network address to bind to
 	config  *listeners.Config // configuration values for the listener
 	listen  *http.Server      // the http server
-	log     *zerolog.Logger   // server logger
+	log     *slog.Logger      // server logger
 	end     uint32            // ensure the close methods are only called once
 }
 
@@ -54,7 +54,7 @@ func (l *LetsEncrypt) Protocol() string {
 }
 
 // Init initializes the listener.
-func (l *LetsEncrypt) Init(log *zerolog.Logger) error {
+func (l *LetsEncrypt) Init(log *slog.Logger) error {
 	l.log = log
 
 	mux := http.NewServeMux()
