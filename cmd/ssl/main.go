@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -34,7 +35,12 @@ func main() {
 	}()
 
 	// Create the new MQTT Server.
-	server := mqtt.New(&mqtt.Options{})
+	conf := mqtt.Options{
+		InlineClient: false,
+		Logger:       slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})),
+	}
+	server := mqtt.New(&conf)
+	server.Options.Capabilities.MaximumClientWritesPending = 32 * 1024
 
 	// ****************** CONFIGURE LOGGING ************
 
