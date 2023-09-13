@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log"
-	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -37,7 +36,6 @@ func main() {
 	// Create the new MQTT Server.
 	conf := mqtt.Options{
 		InlineClient: false,
-		Logger:       slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})),
 	}
 	server := mqtt.New(&conf)
 	server.Options.Capabilities.MaximumClientWritesPending = 32 * 1024
@@ -66,6 +64,7 @@ func main() {
 
 	var tlsConfig *tls.Config
 	if os.Getenv("FLAGS_SSL_ENABLED") == "true" {
+		server.Log.Info("Configuring SSL")
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Strict-Transport-Security", "max-age=15768000 ; includeSubDomains")
 			fmt.Fprintf(w, "Hello, HTTPS world!")
