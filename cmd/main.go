@@ -17,7 +17,6 @@ import (
 	"github.com/mochi-mqtt/server/v2/hooks/debug"
 	"github.com/mochi-mqtt/server/v2/listeners"
 	"github.com/upperz-llc/go-broker/internal/hooks"
-	"github.com/upperz-llc/go-broker/internal/webserver"
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 )
@@ -203,8 +202,6 @@ func main() {
 			return
 		}
 	}()
-
-	go webserver.StartWebServer(server)
 
 	<-done
 	server.Log.Warn("caught signal, stopping...")
