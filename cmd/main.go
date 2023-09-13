@@ -65,7 +65,7 @@ func main() {
 	// }
 
 	var tlsConfig *tls.Config
-	if os.Getenv("FLAG_SSL_ENABLED") == "true" {
+	if os.Getenv("FLAGS_SSL_ENABLED") == "true" {
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Strict-Transport-Security", "max-age=15768000 ; includeSubDomains")
 			fmt.Fprintf(w, "Hello, HTTPS world!")
