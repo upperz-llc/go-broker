@@ -13,7 +13,10 @@ COPY . ./
 
 RUN go build -o /app/mochi cmd/main.go
 
-FROM scratch
+FROM alpine
+
+RUN apk update
+RUN apk upgrade
 
 WORKDIR /
 COPY --from=builder /app/mochi .
