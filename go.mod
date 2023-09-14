@@ -7,7 +7,6 @@ require (
 	cloud.google.com/go/pubsub v1.33.0
 	cloud.google.com/go/secretmanager v1.11.1
 	github.com/dgduncan/mochi-cloud-hooks v0.3.0
-	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang/mock v1.6.0
 	github.com/mochi-mqtt/server/v2 v2.4.0

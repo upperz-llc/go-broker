@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log"
-	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -18,7 +17,6 @@ import (
 	"github.com/mochi-mqtt/server/v2/hooks/debug"
 	"github.com/mochi-mqtt/server/v2/listeners"
 	"github.com/upperz-llc/go-broker/internal/hooks"
-	"github.com/upperz-llc/go-broker/internal/webserver"
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 )
@@ -37,7 +35,6 @@ func main() {
 	// Create the new MQTT Server.
 	conf := mqtt.Options{
 		InlineClient: false,
-		Logger:       slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})),
 	}
 	server := mqtt.New(&conf)
 	server.Options.Capabilities.MaximumClientWritesPending = 32 * 1024
@@ -65,7 +62,8 @@ func main() {
 	// }
 
 	var tlsConfig *tls.Config
-	if os.Getenv("FLAG_SSL_ENABLED") == "true" {
+	if os.Getenv("FLAGS_SSL_ENABLED") == "true" {
+		server.Log.Info("Configuring SSL")
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Strict-Transport-Security", "max-age=15768000 ; includeSubDomains")
 			fmt.Fprintf(w, "Hello, HTTPS world!")
@@ -204,8 +202,6 @@ func main() {
 			return
 		}
 	}()
-
-	go webserver.StartWebServer(server)
 
 	<-done
 	server.Log.Warn("caught signal, stopping...")
