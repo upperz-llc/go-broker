@@ -9,7 +9,6 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	mch "github.com/dgduncan/mochi-cloud-hooks"
-	"github.com/upperz-llc/go-broker/internal/admin"
 )
 
 func NewMochiCloudHooksPubSubConfig(ctx context.Context) (*mch.PubsubMessagingHookConfig, error) {
@@ -47,13 +46,13 @@ func NewMochiCloudHooksPubSubConfig(ctx context.Context) (*mch.PubsubMessagingHo
 		return nil, errors.New("BROKER_HOOK_GCPPUBSUB_TOPIC_UNSUBSCRIBE not found")
 	}
 
-	adminclient, err := admin.NewAdmin(ctx)
-	if err != nil {
-		return nil, err
-	}
+	// adminclient, err := admin.NewAdmin(ctx)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	disallowList := make([]string, 0)
-	disallowList = append(disallowList, adminclient.GetAdminCredentials())
+	// disallowList = append(disallowList, adminclient.GetAdminCredentials())
 
 	// Create and configure pubsub client
 	pc, err := pubsub.NewClient(ctx, pid)
