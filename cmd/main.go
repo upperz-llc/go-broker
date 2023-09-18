@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log"
-	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -41,12 +40,6 @@ func main() {
 	}
 	server := mqtt.New(&conf)
 	server.Options.Capabilities.MaximumClientWritesPending = 32 * 1024
-
-	level := new(slog.LevelVar)
-	server.Log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: level,
-	}))
-	level.Set(slog.LevelDebug)
 
 	// ****************** CONFIGURE LOGGING ************
 
