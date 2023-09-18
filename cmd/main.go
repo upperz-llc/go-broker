@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,6 +16,8 @@ import (
 
 	"github.com/mochi-mqtt/server/v2/hooks/auth"
 	"github.com/mochi-mqtt/server/v2/hooks/debug"
+	"github.com/mochi-mqtt/server/v2/hooks/storage/badger"
+
 	"github.com/mochi-mqtt/server/v2/listeners"
 	"github.com/upperz-llc/go-broker/internal/hooks"
 	"golang.org/x/crypto/acme"
@@ -38,6 +41,12 @@ func main() {
 	}
 	server := mqtt.New(&conf)
 	server.Options.Capabilities.MaximumClientWritesPending = 32 * 1024
+
+	level := new(slog.LevelVar)
+	server.Log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: level,
+	}))
+	level.Set(slog.LevelDebug)
 
 	// ****************** CONFIGURE LOGGING ************
 
@@ -153,7 +162,6 @@ func main() {
 			server.Log.Error("", err)
 			return
 		}
-
 	}
 
 	// CONFIGS
@@ -164,6 +172,13 @@ func main() {
 	}); err != nil {
 		server.Log.Error("", err)
 		return
+	}
+
+	err := server.AddHook(new(badger.Hook), &badger.Options{
+		Path: ".badger",
+	})
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	// Create a TCP listener on a standard port.
@@ -177,7 +192,7 @@ func main() {
 
 	hs := listeners.NewHTTPStats("stats", ":8081", nil, server.Info)
 
-	err := server.AddListener(tcp)
+	err = server.AddListener(tcp)
 	if err != nil {
 		server.Log.Error("", err)
 		return
