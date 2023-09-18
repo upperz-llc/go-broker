@@ -175,7 +175,7 @@ func main() {
 	}
 
 	err := server.AddHook(new(badger.Hook), &badger.Options{
-		Path: ".badger",
+		Path: "/badger/.badger",
 	})
 	if err != nil {
 		log.Fatal(err)
