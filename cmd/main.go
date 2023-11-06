@@ -26,6 +26,7 @@ import (
 
 func main() {
 	ctx := context.Background()
+	port := ":1883"
 
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
@@ -93,7 +94,7 @@ func main() {
 			},
 		}
 
-		log.Printf("Serving http/https for domains: %s", os.Getenv("LISTENERS_LETSENCRYPT_HOST"))
+		server.Log.Info(fmt.Sprintf("Serving http/https for domains: %s", os.Getenv("LISTENERS_LETSENCRYPT_HOST")))
 		go func() {
 			// serve HTTP, which will redirect automatically to HTTPS
 			h := certManager.HTTPHandler(nil)
@@ -109,6 +110,8 @@ func main() {
 		tlsConfig = &tls.Config{
 			GetCertificate: certManager.GetCertificate,
 		}
+
+		port = ":8883" // change port to mqtts
 	}
 
 	if os.Getenv("FLAGS_PUBSUB_ENABLED") == "true" {
@@ -181,7 +184,7 @@ func main() {
 
 	// Create a TCP listener on a standard port.
 
-	tcp := listeners.NewTCP("t1", ":1883", &listeners.Config{
+	tcp := listeners.NewTCP("t1", port, &listeners.Config{
 		TLSConfig: tlsConfig,
 	})
 
