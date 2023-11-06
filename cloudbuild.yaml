@@ -13,9 +13,9 @@ steps:
 #   args: [ 'push', '${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$TAG_NAME-loadtesting']
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: 'gcloud'
-  args: [ 'compute', 'instances', 'update-container', 'broker', '--zone', 'us-central1-a', '--container-image=${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest' ]
+  args: [ 'compute', 'instances', 'update-container', 'broker-1', '--zone', 'us-central1-a', '--container-image=${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest' ]
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: 'gcloud'
-  args: [ 'compute', 'instances', 'reset', 'broker', '--zone', 'us-central1-a' ]
+  args: [ 'compute', 'instances', 'reset', 'broker-1', '--zone', 'us-central1-a' ]
 # images:
 # - '${_LOCATION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$TAG_NAME'
