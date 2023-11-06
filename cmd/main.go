@@ -160,18 +160,22 @@ func main() {
 	// CONFIGS
 	// *************************************
 
-	if err := server.AddHook(new(debug.Hook), &debug.Options{
-		// ShowPacketData: true,
-	}); err != nil {
-		server.Log.Error("", err)
-		return
+	if os.Getenv("FLAGS_DEBUG") == "true" {
+		if err := server.AddHook(new(debug.Hook), &debug.Options{
+			// ShowPacketData: true,
+		}); err != nil {
+			server.Log.Error("", err)
+			return
+		}
 	}
 
-	err := server.AddHook(new(badger.Hook), &badger.Options{
-		Path: "/badger/.badger",
-	})
-	if err != nil {
-		log.Fatal(err)
+	if os.Getenv("FLAGS_STORAGE") == "true" {
+		err := server.AddHook(new(badger.Hook), &badger.Options{
+			Path: "/badger/.badger",
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	// Create a TCP listener on a standard port.
@@ -185,7 +189,7 @@ func main() {
 
 	hs := listeners.NewHTTPStats("stats", ":8081", nil, server.Info)
 
-	err = server.AddListener(tcp)
+	err := server.AddListener(tcp)
 	if err != nil {
 		server.Log.Error("", err)
 		return
