@@ -16,7 +16,7 @@ import (
 
 	"github.com/mochi-mqtt/server/v2/hooks/auth"
 	"github.com/mochi-mqtt/server/v2/hooks/debug"
-	"github.com/mochi-mqtt/server/v2/hooks/storage/badger"
+	"github.com/mochi-mqtt/server/v2/hooks/storage/redis"
 
 	"github.com/mochi-mqtt/server/v2/listeners"
 	"github.com/upperz-llc/go-broker/internal/hooks"
@@ -174,11 +174,25 @@ func main() {
 	}
 
 	if os.Getenv("FLAGS_STORAGE") == "true" {
-		err := server.AddHook(new(badger.Hook), &badger.Options{
-			Path: "/badger/.badger",
-		})
+		// err := server.AddHook(new(badger.Hook), &badger.Options{
+		// 	Path: "/badger/.badger",
+		// })
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+
+		opts, err := hooks.NewRedisPersistanceHookConfig(ctx)
 		if err != nil {
-			log.Fatal(err)
+			server.Log.Error("error creating Redis configuration", "error", err)
+			os.Exit(2)
+			return
+		}
+
+		err = server.AddHook(new(redis.Hook), opts)
+		if err != nil {
+			server.Log.Error("error adding Redis hook", "error", err)
+			os.Exit(2)
+			return
 		}
 	}
 

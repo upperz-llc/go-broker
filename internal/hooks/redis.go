@@ -18,7 +18,7 @@ func NewRedisPersistanceHookConfig(ctx context.Context) (*redis.Options, error) 
 
 	return &redis.Options{
 		Options: &rv8.Options{
-			Addr:     "redis-10731.c253.us-central1-1.gce.cloud.redislabs.com:10731", // default redis address
+			Addr:     "redis-11872.c279.us-central1-1.gce.cloud.redislabs.com:11872", // default redis address
 			Password: rp,                                                             // your password
 			DB:       0,                                                              // your redis db
 			Username: "default",
