@@ -12,6 +12,7 @@ import (
 	"syscall"
 
 	mch "github.com/dgduncan/mochi-cloud-hooks"
+	authhook "github.com/mochi-mqtt/hooks/auth/http"
 	mqtt "github.com/mochi-mqtt/server/v2"
 
 	"github.com/mochi-mqtt/server/v2/hooks/auth"
@@ -130,7 +131,7 @@ func main() {
 	}
 
 	if os.Getenv("FLAGS_HTTP_AUTH_ENABLED") == "true" {
-		ah := new(mch.HTTPAuthHook)
+		ah := new(authhook.Hook)
 
 		httpauthconfig, err := hooks.NewMochiCloudHooksHTTPAuthConfig(ctx)
 		if err != nil {
