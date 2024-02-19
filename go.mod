@@ -9,7 +9,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang/mock v1.6.0
 	github.com/mochi-mqtt/hooks v0.0.1
-	github.com/mochi-mqtt/server/v2 v2.4.2
+	github.com/mochi-mqtt/server/v2 v2.4.6
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/crypto v0.15.0
 	google.golang.org/api v0.151.0

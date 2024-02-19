@@ -21,6 +21,7 @@ import (
 
 	"github.com/mochi-mqtt/server/v2/listeners"
 	"github.com/upperz-llc/go-broker/internal/hooks"
+	pubsubhook "github.com/upperz-llc/go-broker/pkg/hooks/pubsub"
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 )
@@ -118,7 +119,7 @@ func main() {
 	if os.Getenv("FLAGS_PUBSUB_ENABLED") == "true" {
 		gcph := new(mch.PubsubMessagingHook)
 
-		pshConfig, err := hooks.NewMochiCloudHooksPubSubConfig(ctx)
+		pshConfig, err := pubsubhook.NewPubSubHookConfig(ctx)
 		if err != nil {
 			server.Log.Error("", err)
 			return

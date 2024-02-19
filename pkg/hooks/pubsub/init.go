@@ -1,4 +1,4 @@
-package hooks
+package pubsub
 
 import (
 	"context"
@@ -8,10 +8,9 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
-	mch "github.com/dgduncan/mochi-cloud-hooks"
 )
 
-func NewMochiCloudHooksPubSubConfig(ctx context.Context) (*mch.PubsubMessagingHookConfig, error) {
+func NewPubSubHookConfig(ctx context.Context) (*HookConfig, error) {
 	// Pull Env Variables
 	pid, found := os.LookupEnv("GCP_PROJECT_ID")
 	if !found {
@@ -101,7 +100,7 @@ func NewMochiCloudHooksPubSubConfig(ctx context.Context) (*mch.PubsubMessagingHo
 		CountThreshold: 10,
 	}
 
-	return &mch.PubsubMessagingHookConfig{
+	return &HookConfig{
 		OnConnectTopic:            connecttopic,
 		OnDisconnectTopic:         disconnecttopic,
 		OnSessionEstablishedTopic: onSessionEstablishedTopic,
