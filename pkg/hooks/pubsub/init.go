@@ -10,7 +10,7 @@ import (
 	"cloud.google.com/go/pubsub"
 )
 
-func NewPubSubHookConfig(ctx context.Context) (*HookConfig, error) {
+func NewPubSubHookConfig(ctx context.Context) (*Config, error) {
 	// Pull Env Variables
 	pid, found := os.LookupEnv("GCP_PROJECT_ID")
 	if !found {
@@ -100,7 +100,7 @@ func NewPubSubHookConfig(ctx context.Context) (*HookConfig, error) {
 		CountThreshold: 10,
 	}
 
-	return &HookConfig{
+	return &Config{
 		OnConnectTopic:            connecttopic,
 		OnDisconnectTopic:         disconnecttopic,
 		OnSessionEstablishedTopic: onSessionEstablishedTopic,

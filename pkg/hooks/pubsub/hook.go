@@ -27,7 +27,7 @@ type Hook struct {
 	mqtt.HookBase
 }
 
-type HookConfig struct {
+type Config struct {
 	OnStartedTopic            *pubsub.Topic
 	OnStoppedTopic            *pubsub.Topic
 	OnConnectTopic            *pubsub.Topic
@@ -63,7 +63,7 @@ func (pmh *Hook) Init(config any) error {
 		return errors.New("nil config")
 	}
 
-	pmhc, ok := config.(HookConfig)
+	pmhc, ok := config.(Config)
 	if !ok {
 		return errors.New("improper config")
 	}
