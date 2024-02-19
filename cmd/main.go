@@ -117,7 +117,7 @@ func main() {
 	}
 
 	if os.Getenv("FLAGS_PUBSUB_ENABLED") == "true" {
-		gcph := new(mch.PubsubMessagingHook)
+		gcph := new(pubsubhook.Hook)
 
 		pshConfig, err := pubsubhook.NewPubSubHookConfig(ctx)
 		if err != nil {
