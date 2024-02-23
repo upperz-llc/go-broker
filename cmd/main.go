@@ -21,6 +21,7 @@ import (
 
 	"github.com/mochi-mqtt/server/v2/listeners"
 	"github.com/upperz-llc/go-broker/internal/hooks"
+	"github.com/upperz-llc/go-broker/internal/listener"
 	pubsubhook "github.com/upperz-llc/go-broker/pkg/hooks/pubsub"
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
@@ -40,7 +41,8 @@ func main() {
 
 	// Create the new MQTT Server.
 	conf := mqtt.Options{
-		Logger: slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+		Logger:       slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+		InlineClient: true,
 	}
 	server := mqtt.New(&conf)
 	server.Options.Capabilities.MaximumClientWritesPending = 32 * 1024
@@ -209,6 +211,8 @@ func main() {
 
 	hs := listeners.NewHTTPStats("stats", ":8081", nil, server.Info)
 
+	api := listener.NewAPI("api", ":8084", server, nil)
+
 	err := server.AddListener(tcp)
 	if err != nil {
 		server.Log.Error("", err)
@@ -222,6 +226,12 @@ func main() {
 	}
 
 	err = server.AddListener(hs)
+	if err != nil {
+		server.Log.Error("", err)
+		return
+	}
+
+	err = server.AddListener(api)
 	if err != nil {
 		server.Log.Error("", err)
 		return
