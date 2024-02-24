@@ -3,7 +3,6 @@ package listener
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -82,12 +81,9 @@ func (l *API) Init(log *slog.Logger) error {
 
 		msgReqPayload, err := json.Marshal(msgReq.Payload)
 		if err != nil {
-			fmt.Println("Error parsing request body")
 			http.Error(w, "Error parsing request body", http.StatusBadRequest)
 			return
 		}
-
-		fmt.Println(msgReq.Topic, msgReq.Payload, msgReq.Retain, msgReq.QoS)
 
 		if err := l.inlineClient.Publish(msgReq.Topic, msgReqPayload, msgReq.Retain, msgReq.QoS); err != nil {
 			http.Error(w, "Error publishing message", http.StatusInternalServerError)
