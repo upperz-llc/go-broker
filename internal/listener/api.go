@@ -3,6 +3,7 @@ package listener
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -78,6 +79,8 @@ func (l *API) Init(log *slog.Logger) error {
 			http.Error(w, "Error parsing request body", http.StatusBadRequest)
 			return
 		}
+
+		fmt.Println(msgReq.Topic, msgReq.Payload, msgReq.Retain, msgReq.QoS)
 
 		if err := l.inlineClient.Publish(msgReq.Topic, msgReq.Payload, msgReq.Retain, msgReq.QoS); err != nil {
 			http.Error(w, "Error publishing message", http.StatusInternalServerError)
