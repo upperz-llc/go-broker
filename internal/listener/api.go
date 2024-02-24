@@ -2,6 +2,8 @@ package listener
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"log/slog"
 	"net/http"
 	"sync"
@@ -10,6 +12,7 @@ import (
 
 	mqtt "github.com/mochi-mqtt/server/v2"
 	"github.com/mochi-mqtt/server/v2/listeners"
+	"github.com/upperz-llc/go-broker/pkg/api"
 )
 
 // API is a listener for providing an HTTP healthcheck endpoint.
@@ -62,6 +65,27 @@ func (l *API) Init(log *slog.Logger) error {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/message", func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "Error reading request body", http.StatusInternalServerError)
+			return
+		}
+
+		var msgReq api.MessageRequest
+		if err := json.Unmarshal(body, &msgReq); err != nil {
+			http.Error(w, "Error parsing request body", http.StatusBadRequest)
+			return
+		}
+
+		if err := l.inlineClient.Publish(msgReq.Topic, msgReq.Payload, msgReq.Retain, msgReq.QoS); err != nil {
+			http.Error(w, "Error publishing message", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusCreated)
+
 	})
 	l.listen = &http.Server{
 		ReadTimeout:  5 * time.Second,
