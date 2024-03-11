@@ -79,13 +79,19 @@ func (l *API) Init(log *slog.Logger) error {
 			return
 		}
 
-		msgReqPayload, err := json.Marshal(msgReq.Payload)
-		if err != nil {
-			http.Error(w, "Error parsing request body", http.StatusBadRequest)
-			return
-		}
+		// fmt.Println(msgReq.Payload)
+		// fmt.Println(string(msgReq.Payload))
 
-		if err := l.inlineClient.Publish(msgReq.Topic, msgReqPayload, msgReq.Retain, msgReq.QoS); err != nil {
+		// msgReqPayload, err := json.Marshal(msgReq.Payload)
+		// if err != nil {
+		// 	http.Error(w, "Error parsing request body", http.StatusBadRequest)
+		// 	return
+		// }
+
+		// fmt.Println(msgReqPayload)
+		// fmt.Println(string(msgReqPayload))
+
+		if err := l.inlineClient.Publish(msgReq.Topic, msgReq.Payload, msgReq.Retain, msgReq.QoS); err != nil {
 			http.Error(w, "Error publishing message", http.StatusInternalServerError)
 			return
 		}
